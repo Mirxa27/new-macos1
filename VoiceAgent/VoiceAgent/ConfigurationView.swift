@@ -1,0 +1,508 @@
+import SwiftUI
+
+struct ConfigurationView: View {
+    @EnvironmentObject var voiceAgent: VoiceAgent
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var selectedProviderIndex = 0
+    @State private var selectedModelIndex = 0
+    @State private var apiKey = ""
+    @State private var customBaseURL = ""
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    @State private var selectedVoiceIndex = 0
+    @State private var selectedVisionModelIndex = 0
+    @State private var availableVoices: [VoiceInfo] = []
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Form {
+                    Section(header: Text("AI Provider Configuration")) {
+                        // Provider Selection
+                        Picker("Provider", selection: $selectedProviderIndex) {
+                            ForEach(0..<voiceAgent.aiProviderManager.providers.count, id: \.self) { index in
+                                Text(voiceAgent.aiProviderManager.providers[index].name)
+                                    .tag(index)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .onChange(of: selectedProviderIndex) { _, newValue in
+                            updateModelSelection()
+                        }
+                        
+                        // Model Selection
+                        if !currentProvider.models.isEmpty {
+                            Picker("Model", selection: $selectedModelIndex) {
+                                ForEach(0..<currentProvider.models.count, id: \.self) { index in
+                                    Text(currentProvider.models[index])
+                                        .tag(index)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                        }
+                        
+                        // Vision Model Selection (if provider supports vision)
+                        if currentProvider.supportsVision && !currentProvider.visionModels.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Vision Models")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                Picker("Vision Model", selection: $selectedVisionModelIndex) {
+                                    ForEach(0..<currentProvider.visionModels.count, id: \.self) { index in
+                                        Text(currentProvider.visionModels[index])
+                                            .tag(index)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                            }
+                        }
+                        
+                        // API Key / Configuration
+                        if currentProvider.name != "Ollama" {
+                            SecureField("API Key", text: $apiKey)
+                                .textFieldStyle(.roundedBorder)
+                        } else {
+                            TextField("Base URL (optional)", text: $customBaseURL)
+                                .textFieldStyle(.roundedBorder)
+                                .placeholder(when: customBaseURL.isEmpty) {
+                                    Text("http://localhost:11434")
+                                        .foregroundColor(.secondary)
+                                }
+                        }
+                        
+                        // Configuration Status
+                        HStack {
+                            Image(systemName: currentProvider.isConfigured ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                .foregroundColor(currentProvider.isConfigured ? .green : .orange)
+                            
+                            Text(currentProvider.isConfigured ? "Configured" : "Not Configured")
+                                .foregroundColor(currentProvider.isConfigured ? .green : .orange)
+                        }
+                    }
+                    
+                    Section(header: Text("Voice Recognition")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Listening Language")
+                                .font(.subheadline)
+                            
+                            Picker("Language", selection: .constant(0)) {
+                                Text("English (US)").tag(0)
+                                Text("English (UK)").tag(1)
+                                Text("Spanish").tag(2)
+                                Text("French").tag(3)
+                            }
+                            .pickerStyle(.menu)
+                            .disabled(true) // TODO: Implement language switching
+                            
+                            Text("Wake Word")
+                                .font(.subheadline)
+                            
+                            TextField("Wake word", text: .constant("Hey Assistant"))
+                                .textFieldStyle(.roundedBorder)
+                                .disabled(true) // TODO: Implement wake word
+                        }
+                    }
+                    
+                    Section(header: Text("Vision Analysis")) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle("Enable Vision Analysis", isOn: $voiceAgent.visionManager.isVisionEnabled)
+                            
+                            if voiceAgent.visionManager.isVisionEnabled {
+                                Toggle("Use Vision When Available", isOn: $voiceAgent.aiProviderManager.useVisionWhenAvailable)
+                                    .disabled(!currentProvider.supportsVision)
+                                
+                                if !currentProvider.supportsVision {
+                                    Text("Current AI provider does not support vision analysis")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                }
+                                
+                                HStack {
+                                    Button("Test Vision") {
+                                        testVisionAnalysis()
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                    .disabled(!currentProvider.supportsVision)
+                                    
+                                    Button("Describe Current Screen") {
+                                        voiceAgent.describeCurrentScreen()
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                }
+                                
+                                if let lastAnalysis = voiceAgent.visionManager.lastAnalysis {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Last Analysis:")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text(lastAnalysis.summary)
+                                            .font(.caption)
+                                            .lineLimit(2)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle("Enable Voice Feedback", isOn: $voiceAgent.voiceFeedbackManager.isEnabled)
+                            
+                            if voiceAgent.voiceFeedbackManager.isEnabled {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Voice")
+                                        .font(.subheadline)
+                                    
+                                    Picker("Voice", selection: $selectedVoiceIndex) {
+                                        ForEach(0..<availableVoices.count, id: \.self) { index in
+                                            Text(availableVoices[index].displayName)
+                                                .tag(index)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .onChange(of: selectedVoiceIndex) { _, newValue in
+                                        if newValue < availableVoices.count {
+                                            voiceAgent.voiceFeedbackManager.setVoice(availableVoices[newValue].identifier)
+                                        }
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Volume: \(Int(voiceAgent.voiceFeedbackManager.volume * 100))%")
+                                            .font(.subheadline)
+                                        
+                                        Slider(value: Binding(
+                                            get: { voiceAgent.voiceFeedbackManager.volume },
+                                            set: { voiceAgent.voiceFeedbackManager.setVolume($0) }
+                                        ), in: 0...1)
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Speed: \(Int(voiceAgent.voiceFeedbackManager.rate * 100))%")
+                                            .font(.subheadline)
+                                        
+                                        Slider(value: Binding(
+                                            get: { voiceAgent.voiceFeedbackManager.rate },
+                                            set: { voiceAgent.voiceFeedbackManager.setRate($0) }
+                                        ), in: 0.1...1.0)
+                                    }
+                                    
+                                    HStack {
+                                        Button("Test Voice") {
+                                            voiceAgent.voiceFeedbackManager.speak("Hello! This is a test of the voice feedback system.")
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        
+                                        if voiceAgent.voiceFeedbackManager.isSpeaking {
+                                            Button("Stop") {
+                                                voiceAgent.voiceFeedbackManager.stopSpeaking()
+                                            }
+                                            .buttonStyle(.bordered)
+                                            .controlSize(.small)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    Section(header: Text("Voice Feedback")) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle("Enable Voice Feedback", isOn: $voiceAgent.voiceFeedbackManager.isEnabled)
+                            
+                            if voiceAgent.voiceFeedbackManager.isEnabled {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Voice")
+                                        .font(.subheadline)
+                                    
+                                    Picker("Voice", selection: $selectedVoiceIndex) {
+                                        ForEach(0..<availableVoices.count, id: \.self) { index in
+                                            Text(availableVoices[index].displayName)
+                                                .tag(index)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .onChange(of: selectedVoiceIndex) { _, newValue in
+                                        if newValue < availableVoices.count {
+                                            voiceAgent.voiceFeedbackManager.setVoice(availableVoices[newValue].identifier)
+                                        }
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Volume: \(Int(voiceAgent.voiceFeedbackManager.volume * 100))%")
+                                            .font(.subheadline)
+                                        
+                                        Slider(value: Binding(
+                                            get: { voiceAgent.voiceFeedbackManager.volume },
+                                            set: { voiceAgent.voiceFeedbackManager.setVolume($0) }
+                                        ), in: 0...1)
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Speed: \(Int(voiceAgent.voiceFeedbackManager.rate * 100))%")
+                                            .font(.subheadline)
+                                        
+                                        Slider(value: Binding(
+                                            get: { voiceAgent.voiceFeedbackManager.rate },
+                                            set: { voiceAgent.voiceFeedbackManager.setRate($0) }
+                                        ), in: 0.1...1.0)
+                                    }
+                                    
+                                    HStack {
+                                        Button("Test Voice") {
+                                            voiceAgent.voiceFeedbackManager.speak("Hello! This is a test of the voice feedback system.")
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        
+                                        if voiceAgent.voiceFeedbackManager.isSpeaking {
+                                            Button("Stop") {
+                                                voiceAgent.voiceFeedbackManager.stopSpeaking()
+                                            }
+                                            .buttonStyle(.bordered)
+                                            .controlSize(.small)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                        PermissionRow(
+                            title: "Microphone Access",
+                            description: "Required for voice recognition",
+                            isGranted: .constant(true), // TODO: Check actual permission
+                            onRequest: {
+                                // TODO: Request microphone permission
+                            }
+                        )
+                        
+                        PermissionRow(
+                            title: "Screen Recording",
+                            description: "Required for screen monitoring",
+                            isGranted: .constant(false), // TODO: Check actual permission
+                            onRequest: {
+                                // TODO: Request screen recording permission
+                            }
+                        )
+                        
+                        PermissionRow(
+                            title: "Accessibility",
+                            description: "Required for system control",
+                            isGranted: .constant(false), // TODO: Check actual permission
+                            onRequest: {
+                                // TODO: Open accessibility settings
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                        )
+                    }
+                }
+                .formStyle(.grouped)
+                
+                // Action Buttons
+                HStack(spacing: 16) {
+                    Button("Test Configuration") {
+                        testConfiguration()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(!currentProvider.isConfigured)
+                    
+                    Button("Save") {
+                        saveConfiguration()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
+            }
+            .navigationTitle("Configuration")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .alert("Configuration", isPresented: $showingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alertMessage)
+        }
+        .onAppear {
+            loadCurrentConfiguration()
+            loadVoiceSettings()
+        }
+    }
+    
+    private var currentProvider: AIProvider {
+        return voiceAgent.aiProviderManager.providers[selectedProviderIndex]
+    }
+    
+    private func loadCurrentConfiguration() {
+        if let currentProvider = voiceAgent.aiProviderManager.currentProvider,
+           let index = voiceAgent.aiProviderManager.providers.firstIndex(where: { $0.name == currentProvider.name }) {
+            selectedProviderIndex = index
+        }
+        
+        updateModelSelection()
+    }
+    
+    private func updateModelSelection() {
+        let provider = currentProvider
+        if let currentModel = voiceAgent.aiProviderManager.selectedModel,
+           let modelIndex = provider.models.firstIndex(of: currentModel) {
+            selectedModelIndex = modelIndex
+        } else {
+            selectedModelIndex = 0
+        }
+        
+        // Clear API key when switching providers
+        apiKey = ""
+        customBaseURL = ""
+    }
+    
+    private func saveConfiguration() {
+        do {
+            let provider = currentProvider
+            let selectedModel = selectedModelIndex < provider.models.count ? provider.models[selectedModelIndex] : provider.models.first ?? ""
+            
+            if provider.name == "Ollama" {
+                try provider.configure(apiKey: customBaseURL.isEmpty ? "http://localhost:11434" : customBaseURL, model: selectedModel)
+            } else {
+                try provider.configure(apiKey: apiKey, model: selectedModel)
+            }
+            
+            voiceAgent.aiProviderManager.selectProvider(provider)
+            voiceAgent.aiProviderManager.selectModel(selectedModel)
+            
+            alertMessage = "Configuration saved successfully!"
+            showingAlert = true
+            
+        } catch {
+            alertMessage = "Failed to save configuration: \(error.localizedDescription)"
+            showingAlert = true
+        }
+    }
+    
+    private func testConfiguration() {
+        Task {
+            do {
+                let provider = currentProvider
+                let response = try await provider.processCommand("Say hello", screenContext: "Test screen context")
+                
+                await MainActor.run {
+                    alertMessage = "Test successful! Response: \(response.prefix(100))..."
+                    showingAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    alertMessage = "Test failed: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+        }
+    }
+    
+    private func testVisionAnalysis() {
+        Task {
+            do {
+                // Take a screenshot and analyze it
+                if let screenshot = await voiceAgent.screenManager.takeScreenshot() {
+                    let analysis = try await voiceAgent.aiProviderManager.analyzeScreenImage(
+                        screenshot, 
+                        prompt: "Describe what you see in this screenshot"
+                    )
+                    
+                    await MainActor.run {
+                        alertMessage = "Vision test successful! Analysis: \(analysis.prefix(200))..."
+                        showingAlert = true
+                        
+                        // Also speak the result
+                        voiceAgent.voiceFeedbackManager.speak("Vision analysis complete", priority: .normal)
+                    }
+                } else {
+                    await MainActor.run {
+                        alertMessage = "Failed to capture screenshot for vision test"
+                        showingAlert = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    alertMessage = "Vision test failed: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+        }
+    }
+    
+    private func loadVoiceSettings() {
+        availableVoices = voiceAgent.voiceFeedbackManager.getAvailableVoices()
+        
+        // Find current voice index
+        if let currentVoiceId = voiceAgent.voiceFeedbackManager.selectedVoice.isEmpty ? nil : voiceAgent.voiceFeedbackManager.selectedVoice,
+           let index = availableVoices.firstIndex(where: { $0.identifier == currentVoiceId }) {
+            selectedVoiceIndex = index
+        }
+        
+        // Load vision model selection
+        if currentProvider.supportsVision && !currentProvider.visionModels.isEmpty {
+            selectedVisionModelIndex = 0
+        }
+    }
+}
+
+struct PermissionRow: View {
+    let title: String
+    let description: String
+    @Binding var isGranted: Bool
+    let onRequest: () -> Void
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            if isGranted {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            } else {
+                Button("Grant") {
+                    onRequest()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+}
+
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content) -> some View {
+        
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
+        }
+    }
+}
+
+#Preview {
+    ConfigurationView()
+        .environmentObject(VoiceAgent())
+}

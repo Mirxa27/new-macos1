@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Voice Agent Build Script
+# This script helps build the Voice Agent macOS application
+
+set -e
+
+echo "🎤 Building Voice Agent for macOS..."
+
+# Check if Xcode is installed
+if ! command -v xcodebuild &> /dev/null; then
+    echo "❌ Error: Xcode is not installed or xcodebuild is not in PATH"
+    echo "Please install Xcode from the Mac App Store"
+    exit 1
+fi
+
+# Check macOS version
+MACOS_VERSION=$(sw_vers -productVersion)
+REQUIRED_VERSION="14.0"
+
+if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$MACOS_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+    echo "❌ Error: This app requires macOS 14.0 (Sonoma) or later"
+    echo "Current version: $MACOS_VERSION"
+    exit 1
+fi
+
+# Build configurations
+BUILD_CONFIG="Release"
+SCHEME="VoiceAgent"
+PROJECT_PATH="VoiceAgent.xcodeproj"
+
+echo "📱 Building with configuration: $BUILD_CONFIG"
+
+# Clean and build
+echo "🧹 Cleaning previous builds..."
+xcodebuild clean -project "$PROJECT_PATH" -scheme "$SCHEME" -configuration "$BUILD_CONFIG"
+
+echo "🔨 Building Voice Agent..."
+xcodebuild build -project "$PROJECT_PATH" -scheme "$SCHEME" -configuration "$BUILD_CONFIG"
+
+# Archive the app
+echo "📦 Creating archive..."
+ARCHIVE_PATH="build/VoiceAgent.xcarchive"
+xcodebuild archive \
+    -project "$PROJECT_PATH" \
+    -scheme "$SCHEME" \
+    -configuration "$BUILD_CONFIG" \
+    -archivePath "$ARCHIVE_PATH"
+
+# Export the app
+echo "📤 Exporting application..."
+EXPORT_PATH="build/VoiceAgent"
+mkdir -p "$EXPORT_PATH"
+
+# Create export options plist
+cat > build/ExportOptions.plist << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>mac-application</string>
+    <key>destination</key>
+    <string>export</string>
+</dict>
+</plist>
+EOF
+
+xcodebuild -exportArchive \
+    -archivePath "$ARCHIVE_PATH" \
+    -exportPath "$EXPORT_PATH" \
+    -exportOptionsPlist "build/ExportOptions.plist"
+
+echo "✅ Build completed successfully!"
+echo "📍 Application location: $EXPORT_PATH/VoiceAgent.app"
+echo ""
+echo "🚀 To install the app:"
+echo "   1. Open the build/VoiceAgent folder"
+echo "   2. Drag VoiceAgent.app to your Applications folder"
+echo "   3. Run the app and grant the required permissions"
+echo ""
+echo "⚠️  Required permissions:"
+echo "   • Microphone access (for voice recognition)"
+echo "   • Screen recording (for screen monitoring)"
+echo "   • Accessibility (for system control)"
+echo ""
+echo "🔧 Configuration steps:"
+echo "   1. Configure your AI provider (OpenAI, Anthropic, Ollama, or Groq)"
+echo "   2. Set up voice feedback preferences (voice, volume, speed)"
+echo "   3. Grant required system permissions"
+echo "   4. Test voice commands and feedback"
+echo ""
+echo "🎤 Voice feedback features:"
+echo "   • Real-time audio confirmations for all actions"
+echo "   • Customizable system voices and settings"
+echo "   • Priority-based speech management"
+echo "   • Live status updates during task execution"
