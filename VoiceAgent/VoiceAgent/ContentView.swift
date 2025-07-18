@@ -28,6 +28,7 @@ struct ContentView: View {
                 // Status Cards
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
+                    GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 16) {
                     StatusCard(
@@ -73,6 +74,19 @@ struct ContentView: View {
                               (voiceAgent.voiceFeedbackManager.isEnabled ? "speaker.wave.2" : "speaker.slash"),
                         color: voiceAgent.voiceFeedbackManager.isSpeaking ? .blue :
                                (voiceAgent.voiceFeedbackManager.isEnabled ? .green : .gray)
+                    )
+                    
+                    StatusCard(
+                        title: "Live API",
+                        value: voiceAgent.isLiveAPIActive ? 
+                               (voiceAgent.isLiveAPISpeaking ? "Speaking" : 
+                                voiceAgent.isLiveAPIListening ? "Listening" : "Connected") : "Disconnected",
+                        icon: voiceAgent.isLiveAPIActive ? 
+                              (voiceAgent.isLiveAPISpeaking ? "speaker.wave.3.fill" : 
+                               voiceAgent.isLiveAPIListening ? "waveform" : "wifi") : "wifi.slash",
+                        color: voiceAgent.isLiveAPIActive ? 
+                               (voiceAgent.isLiveAPISpeaking ? .blue : 
+                                voiceAgent.isLiveAPIListening ? .green : .orange) : .gray
                     )
                 }
                 .padding(.horizontal)
@@ -141,6 +155,31 @@ struct ContentView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .frame(maxWidth: .infinity)
+                    }
+                    
+                    // Live API Controls
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            voiceAgent.toggleLiveAPI()
+                        }) {
+                            HStack {
+                                Image(systemName: voiceAgent.isLiveAPIActive ? "wifi.slash" : "wifi")
+                                Text(voiceAgent.isLiveAPIActive ? "Stop Live API" : "Start Live API")
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(voiceAgent.isLiveAPIActive ? .borderedProminent : .bordered)
+                        .controlSize(.large)
+                        .disabled(voiceAgent.aiProviderManager.currentProvider?.supportsLiveAPI != true)
+                        
+                        if voiceAgent.isLiveAPIActive {
+                            Button("Send Message") {
+                                // For demo purposes, send a test message
+                                voiceAgent.sendLiveTextMessage("Hello from Live API")
+                            }
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: .infinity)
+                        }
                     }
                 }
                 .padding(.horizontal)

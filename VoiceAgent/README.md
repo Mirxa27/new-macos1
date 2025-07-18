@@ -7,7 +7,8 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
 - **Real-time Speech Recognition**: Continuous voice listening using macOS Speech framework
 - **Live Voice Feedback**: Real-time audio confirmation and status updates during task execution
 - **Advanced Vision Analysis**: AI-powered screen understanding with GPT-4 Vision, Claude 3, and local vision models
-- **Multi-Provider AI Support**: Works with OpenAI, Anthropic, Ollama (local), and Groq
+- **Multi-Provider AI Support**: Works with OpenAI, Anthropic, Gemini (with Live API), Ollama (local), and Groq
+- **Gemini Live API**: Real-time conversation with live audio streaming and screen sharing
 - **Intelligent Screen Monitoring**: Real-time screen capture with AI-enhanced contextual analysis
 - **System Control**: Complete Mac automation including clicks, typing, key presses, scrolling, and app launching
 - **Menu Bar Integration**: Quick access and control from the menu bar
@@ -27,7 +28,12 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
    - **Vision Models**: LLaVA, BakLLaVA
    - **Capabilities**: Privacy-focused local vision analysis
    
-4. **Groq** - Mixtral, Llama2, Gemma
+4. **Google Gemini** - Gemini 2.5 Flash, Gemini 1.5 Pro/Flash
+   - **Vision Models**: Gemini 2.5 Flash, Gemini 1.5 Pro/Flash
+   - **Live API**: Real-time conversation with audio streaming and screen sharing
+   - **Capabilities**: Advanced multimodal understanding, real-time interaction
+   
+5. **Groq** - Mixtral, Llama2, Gemma
    - **Vision Support**: Not available (text-only)
 
 ## System Requirements
@@ -66,7 +72,12 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
    - Select voice from available system voices
    - Adjust volume and speaking speed
    - Test voice feedback
-5. Save settings
+5. **Live API Setup (Gemini only):**
+   - Enable Live API for real-time conversation
+   - Test Live API connection
+   - Monitor audio streaming status
+   - Send test messages
+6. Save settings
 
 ## Usage
 
@@ -92,6 +103,8 @@ The app responds to natural language commands such as:
 - View listening status
 - Monitor screen capture status
 - View voice feedback status and controls
+- Monitor Live API connection and streaming status
+- Control Live API sessions (start/stop)
 - See recent commands and their results
 - Access configuration settings
 - Control voice feedback (mute/unmute, stop speaking)
@@ -151,6 +164,11 @@ App: "Successfully typed the text"
 1. Get your API key from https://console.anthropic.com/
 2. Enter it in the configuration screen
 
+### Google Gemini
+1. Get your API key from https://makersuite.google.com/app/apikey
+2. Enter it in the configuration screen
+3. For Live API features, ensure you have access to Gemini Live API
+
 ### Groq
 1. Get your API key from https://console.groq.com/
 2. Enter it in the configuration screen
@@ -191,6 +209,13 @@ App: "Successfully typed the text"
 - Verify your API key is correct
 - Check your internet connection
 - Ensure the selected model is available
+
+### Live API Connection Issues (Gemini)
+- Ensure you have a valid Gemini API key
+- Check your internet connection
+- Verify Live API access is enabled for your account
+- Try stopping and restarting the Live API session
+- Check firewall settings for WebSocket connections
 - Try a different provider
 
 ## Development

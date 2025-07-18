@@ -217,6 +217,80 @@ struct ConfigurationView: View {
                         }
                     }
                     
+                    Section(header: Text("Live API")) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: currentProvider.supportsLiveAPI ? "wifi" : "wifi.slash")
+                                    .foregroundColor(currentProvider.supportsLiveAPI ? .green : .gray)
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Live API Support")
+                                        .font(.subheadline)
+                                    
+                                    Text(currentProvider.supportsLiveAPI ? 
+                                         "\(currentProvider.name) supports real-time conversation" : 
+                                         "\(currentProvider.name) does not support Live API")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            if currentProvider.supportsLiveAPI {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Status: ")
+                                            .font(.subheadline)
+                                        
+                                        Text(voiceAgent.liveAPIConnectionStatus)
+                                            .font(.subheadline)
+                                            .foregroundColor(voiceAgent.isLiveAPIActive ? .green : .gray)
+                                    }
+                                    
+                                    HStack(spacing: 12) {
+                                        Button(voiceAgent.isLiveAPIActive ? "Stop Live API" : "Start Live API") {
+                                            voiceAgent.toggleLiveAPI()
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        .disabled(!currentProvider.isConfigured)
+                                        
+                                        if voiceAgent.isLiveAPIActive {
+                                            Button("Send Test Message") {
+                                                voiceAgent.sendLiveTextMessage("Hello from configuration!")
+                                            }
+                                            .buttonStyle(.bordered)
+                                            .controlSize(.small)
+                                        }
+                                    }
+                                    
+                                    if voiceAgent.isLiveAPIActive {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            HStack {
+                                                Image(systemName: voiceAgent.isLiveAPIListening ? "waveform" : "waveform.slash")
+                                                    .foregroundColor(voiceAgent.isLiveAPIListening ? .green : .gray)
+                                                    .font(.caption)
+                                                
+                                                Text("Listening: \(voiceAgent.isLiveAPIListening ? "Yes" : "No")")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                                
+                                                Spacer()
+                                                
+                                                Image(systemName: voiceAgent.isLiveAPISpeaking ? "speaker.wave.2" : "speaker.slash")
+                                                    .foregroundColor(voiceAgent.isLiveAPISpeaking ? .blue : .gray)
+                                                    .font(.caption)
+                                                
+                                                Text("Speaking: \(voiceAgent.isLiveAPISpeaking ? "Yes" : "No")")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     Section(header: Text("System Permissions")) {
                         PermissionRow(
                             title: "Microphone Access",

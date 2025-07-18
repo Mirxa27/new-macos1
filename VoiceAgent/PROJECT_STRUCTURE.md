@@ -18,6 +18,8 @@ VoiceAgent/
 │   ├── VisionManager.swift            # AI-powered screen analysis and visual understanding
 │   ├── ScreenManager.swift            # Screen capture and monitoring
 │   ├── AIProviderManager.swift        # Multi-provider AI integration with vision support
+│   ├── GeminiProvider.swift           # Google Gemini AI provider with Live API support
+│   ├── GeminiLiveAPIManager.swift     # Gemini Live API WebSocket integration
 │   ├── SystemController.swift         # System automation and control
 │   ├── VoiceAgent.entitlements        # App permissions and capabilities
 │   ├── Assets.xcassets/               # App icons and resources
@@ -90,30 +92,39 @@ VoiceAgent/
 - Fallback systems for non-vision providers
 - API request handling for both text and vision
 - Model switching and configuration management
+- Live API protocol support and management
 
-### 8. SystemController.swift
-- Multi-provider support (OpenAI, Anthropic, Ollama, Groq)
+### 8. GeminiProvider.swift
+- Google Gemini AI provider implementation
+- Standard API and Live API support
+- Vision capabilities with Gemini models
+- Text and multimodal processing
+- Secure API key management
+- Real-time session management
+
+### 9. GeminiLiveAPIManager.swift
+- WebSocket connection management for Gemini Live API
+- Real-time bidirectional audio streaming
+- Live screen capture and sharing
+- Audio format conversion (16kHz input, 24kHz output)
+- Session state management and error handling
+- Real-time status monitoring and user feedback
+
+### 10. SystemController.swift
+- Multi-provider support (OpenAI, Anthropic, Gemini, Ollama, Groq)
 - Secure API key management
 - Model selection and configuration
 - Request/response handling
 
-### 9. ConfigurationView.swift
+### 11. ConfigurationView.swift
 - User-friendly settings interface
 - AI provider and vision model configuration
+- Live API settings and status monitoring
 - Vision analysis settings and testing
 - Voice feedback customization
 - Permission management and system integration
 - Real-time testing and validation
-- Mouse click automation
-- Keyboard input simulation
-- Application launching
-- System-level interactions
-
-### 8. SystemController.swift
-- User-friendly settings interface
-- AI provider configuration
-- Permission management
-- Testing and validation
+- Live API connection testing and control
 
 ## Key Features Implemented
 
@@ -128,6 +139,14 @@ VoiceAgent/
 - Customizable voice selection from system voices
 - Adjustable volume and speaking speed
 - Priority-based speech management
+
+### Live API Integration
+- Real-time WebSocket communication with Gemini
+- Bidirectional audio streaming (16kHz input, 24kHz output)
+- Live screen sharing and analysis
+- Natural conversation flow with interruption support
+- Automatic session management and error recovery
+- Real-time status monitoring and user feedback
 - Action confirmations and status updates
 
 ### Vision Analysis
@@ -178,6 +197,7 @@ VoiceAgent/
 
 ## Usage Workflow
 
+### Standard Mode
 1. **Startup**: App launches and initializes all subsystems including vision
 2. **Configuration**: User configures AI provider, vision settings, voice feedback, and grants permissions
 3. **Listening**: App continuously listens for voice commands
@@ -185,6 +205,16 @@ VoiceAgent/
 5. **Processing**: Speech and visual context are combined and sent to AI
 6. **Execution**: AI response is parsed and system actions are performed with visual guidance
 7. **Feedback**: Results are displayed and spoken with detailed visual descriptions
+
+### Live API Mode (Gemini Only)
+1. **Startup**: App launches and initializes all subsystems
+2. **Configuration**: User configures Gemini provider with Live API support
+3. **Live Session**: WebSocket connection established with Gemini Live API
+4. **Real-time Audio**: Continuous bidirectional audio streaming begins
+5. **Live Screen Sharing**: Screen content streamed at 1fps to Gemini
+6. **Natural Conversation**: User and AI engage in natural dialogue
+7. **Real-time Processing**: Commands executed instantly with live feedback
+8. **Session Management**: Connection monitored and maintained automatically
 
 ## Command Examples
 
@@ -212,6 +242,16 @@ Voice Input: "Type hello world"
 → System Action: type("hello world")
 → Voice Feedback: "Successfully typed the text"
 → Result: Text is typed at cursor location with visual verification
+
+## Live API Command Example (Gemini)
+
+User: [Speaks naturally] "Help me understand this code"
+→ Live Audio Stream: Voice captured and sent to Gemini in real-time
+→ Live Screen Stream: Current screen content shared with Gemini
+→ Gemini [Real-time voice response]: "I can see you have Swift code open in Xcode. It looks like you're working on the GeminiLiveAPIManager class. I notice the WebSocket connection handling code. Would you like me to explain how the audio streaming works?"
+→ User: "Yes, please explain the audio pipeline"
+→ Gemini [Continues conversation]: "Sure! The audio flows from your microphone through AVAudioEngine, gets converted to PCM format at 16kHz, then base64 encoded and sent through the WebSocket. When I respond, the audio comes back as base64, gets decoded to 24kHz PCM, and plays through AVAudioPlayer..."
+→ Result: Natural, flowing conversation with real-time screen context
 ```
 
 ## Architecture Benefits
@@ -219,10 +259,12 @@ Voice Input: "Type hello world"
 - **Modular Design**: Each component has a single responsibility
 - **Async/Await**: Modern concurrency for responsive UI
 - **Vision Integration**: AI-powered visual understanding
-- **Error Handling**: Comprehensive error management
-- **Extensibility**: Easy to add new AI providers, vision models, or actions
+- **Live API Support**: Real-time conversation capabilities with WebSocket architecture
+- **Error Handling**: Comprehensive error management with connection recovery
+- **Extensibility**: Easy to add new AI providers, vision models, or Live API features
 - **Security**: Secure credential storage and minimal permissions
-- **Performance**: Optimized for real-time processing and vision analysis
+- **Performance**: Optimized for real-time processing, vision analysis, and audio streaming
 - **Privacy**: Local processing options with user-controlled cloud integration
+- **Real-time Communication**: WebSocket-based bidirectional streaming for natural interaction
 
-This architecture provides a solid foundation for a powerful voice-controlled macOS assistant with advanced vision capabilities, maintaining security, performance, and user experience standards while enabling sophisticated visual understanding and contextual awareness.
+This architecture provides a solid foundation for a powerful voice-controlled macOS assistant with advanced vision capabilities and real-time Live API integration, maintaining security, performance, and user experience standards while enabling sophisticated visual understanding, contextual awareness, and natural conversational interaction through cutting-edge WebSocket-based communication with Google Gemini.
