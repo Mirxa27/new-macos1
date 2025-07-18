@@ -6,11 +6,19 @@ protocol AIProvider {
     var visionModels: [String] { get }
     var isConfigured: Bool { get }
     var supportsVision: Bool { get }
+    var supportsLiveAPI: Bool { get }  // New property for Live API support
     
     func configure(apiKey: String, model: String) throws
     func processCommand(_ command: String, screenContext: String) async throws -> String
     func processCommandWithVision(_ command: String, screenContext: String, image: NSImage) async throws -> String
     func analyzeImage(_ image: NSImage, prompt: String?) async throws -> String
+    
+    // Live API Methods
+    func startLiveSession() async throws
+    func stopLiveSession() async
+    func sendLiveAudio(_ audioData: Data) async throws
+    func sendLiveImage(_ imageData: Data) async throws
+    func isLiveSessionActive() -> Bool
 }
 
 class AIProviderManager: ObservableObject {
@@ -29,6 +37,7 @@ class AIProviderManager: ObservableObject {
         providers = [
             OpenAIProvider(),
             AnthropicProvider(),
+            GeminiProvider(),
             OllamaProvider(),
             GroqProvider()
         ]
@@ -103,6 +112,7 @@ class OpenAIProvider: AIProvider {
     let models = ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"]
     let visionModels = ["gpt-4-vision-preview", "gpt-4-turbo", "gpt-4o"]
     let supportsVision = true
+    let supportsLiveAPI = false
     
     private var apiKey: String = ""
     private var selectedModel: String = "gpt-4"
@@ -221,6 +231,27 @@ class OpenAIProvider: AIProvider {
         return content ?? "No vision response received"
     }
     
+    // MARK: - Live API Methods (Not supported)
+    func startLiveSession() async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func stopLiveSession() async {
+        // No-op for providers that don't support Live API
+    }
+    
+    func sendLiveAudio(_ audioData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func sendLiveImage(_ imageData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func isLiveSessionActive() -> Bool {
+        return false
+    }
+    
     func analyzeImage(_ image: NSImage, prompt: String? = nil) async throws -> String {
         guard !apiKey.isEmpty else {
             throw AIProviderError.notConfigured
@@ -273,6 +304,8 @@ class OpenAIProvider: AIProvider {
         let message = choices?.first?["message"] as? [String: Any]
         let content = message?["content"] as? String
         
+        return content ?? "No image analysis response received"
+    }
     
     private func imageToBase64(_ image: NSImage) -> String? {
         guard let tiffData = image.tiffRepresentation,
@@ -319,6 +352,7 @@ class AnthropicProvider: AIProvider {
     let models = ["claude-3-sonnet-20240229", "claude-3-haiku-20240307", "claude-3-opus-20240229"]
     let visionModels = ["claude-3-sonnet-20240229", "claude-3-opus-20240229"]
     let supportsVision = true
+    let supportsLiveAPI = false
     
     private var apiKey: String = ""
     private var selectedModel: String = "claude-3-sonnet-20240229"
@@ -519,41 +553,32 @@ class AnthropicProvider: AIProvider {
         return pngData.base64EncodedString()
     }
     
+    // MARK: - Live API Methods (Not supported)
+    func startLiveSession() async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func stopLiveSession() async {
+        // No-op for providers that don't support Live API
+    }
+    
+    func sendLiveAudio(_ audioData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func sendLiveImage(_ imageData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func isLiveSessionActive() -> Bool {
+        return false
+    }
+    
     init() {
         if let savedKey = loadFromKeychain(key: "anthropic_api_key") {
             self.apiKey = savedKey
         }
         self.selectedModel = UserDefaults.standard.string(forKey: "anthropic_model") ?? "claude-3-sonnet-20240229"
-    }
-    
-    private func imageToBase64(_ image: NSImage) -> String? {
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData) else {
-            return nil
-        }
-        
-        // Resize image if too large
-        let maxSize: CGFloat = 1024
-        let originalSize = image.size
-        
-        var newSize = originalSize
-        if originalSize.width > maxSize || originalSize.height > maxSize {
-            let ratio = min(maxSize / originalSize.width, maxSize / originalSize.height)
-            newSize = CGSize(width: originalSize.width * ratio, height: originalSize.height * ratio)
-        }
-        
-        let resizedImage = NSImage(size: newSize)
-        resizedImage.lockFocus()
-        image.draw(in: NSRect(origin: .zero, size: newSize))
-        resizedImage.unlockFocus()
-        
-        guard let resizedTiffData = resizedImage.tiffRepresentation,
-              let resizedBitmap = NSBitmapImageRep(data: resizedTiffData),
-              let pngData = resizedBitmap.representation(using: .png, properties: [:]) else {
-            return nil
-        }
-        
-        return pngData.base64EncodedString()
     }
 }
 
@@ -563,6 +588,7 @@ class OllamaProvider: AIProvider {
     let models = ["llama2", "codellama", "mistral", "phi", "neural-chat"]
     let visionModels = ["llava", "bakllava"]
     let supportsVision = true
+    let supportsLiveAPI = false
     
     private var selectedModel: String = "llama2"
     private var baseURL: String = "http://localhost:11434"
@@ -691,19 +717,30 @@ class OllamaProvider: AIProvider {
         return pngData.base64EncodedString()
     }
     
+    // MARK: - Live API Methods (Not supported)
+    func startLiveSession() async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func stopLiveSession() async {
+        // No-op for providers that don't support Live API
+    }
+    
+    func sendLiveAudio(_ audioData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func sendLiveImage(_ imageData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func isLiveSessionActive() -> Bool {
+        return false
+    }
+    
     init() {
         self.selectedModel = UserDefaults.standard.string(forKey: "ollama_model") ?? "llama2"
         self.baseURL = UserDefaults.standard.string(forKey: "ollama_base_url") ?? "http://localhost:11434"
-    }
-    
-    private func imageToBase64(_ image: NSImage) -> String? {
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmap.representation(using: .png, properties: [:]) else {
-            return nil
-        }
-        
-        return pngData.base64EncodedString()
     }
 }
 
@@ -713,6 +750,7 @@ class GroqProvider: AIProvider {
     let models = ["mixtral-8x7b-32768", "llama2-70b-4096", "gemma-7b-it"]
     let visionModels: [String] = [] // Groq doesn't support vision yet
     let supportsVision = false
+    let supportsLiveAPI = false
     
     private var apiKey: String = ""
     private var selectedModel: String = "mixtral-8x7b-32768"
@@ -779,6 +817,29 @@ class GroqProvider: AIProvider {
     }
     
     func analyzeImage(_ image: NSImage, prompt: String? = nil) async throws -> String {
+        throw AIProviderError.visionNotSupported
+    }
+    
+    // MARK: - Live API Methods (Not supported)
+    func startLiveSession() async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func stopLiveSession() async {
+        // No-op for providers that don't support Live API
+    }
+    
+    func sendLiveAudio(_ audioData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func sendLiveImage(_ imageData: Data) async throws {
+        throw AIProviderError.liveAPINotImplemented
+    }
+    
+    func isLiveSessionActive() -> Bool {
+        return false
+    }
     
     init() {
         if let savedKey = loadFromKeychain(key: "groq_api_key") {
@@ -872,6 +933,7 @@ enum AIProviderError: Error, LocalizedError {
     case keychainError
     case imageProcessingFailed
     case visionNotSupported
+    case liveAPINotImplemented
     
     var errorDescription: String? {
         switch self {
@@ -887,6 +949,8 @@ enum AIProviderError: Error, LocalizedError {
             return "Failed to process image for vision analysis"
         case .visionNotSupported:
             return "This provider does not support vision capabilities"
+        case .liveAPINotImplemented:
+            return "Live API functionality not yet implemented"
         }
     }
 }

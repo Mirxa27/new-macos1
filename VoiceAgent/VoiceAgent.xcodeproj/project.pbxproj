@@ -18,6 +18,9 @@
 		A10001141A1B1C1D1E1F2000 /* VoiceAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000113DD1B1C1D1E1F1000 /* VoiceAgent.swift */; };
 		A10001151A1B1C1D1E1F2000 /* ConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000114EE1B1C1D1E1F1000 /* ConfigurationView.swift */; };
 		A10001161A1B1C1D1E1F2000 /* VoiceFeedbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000115FF1B1C1D1E1F1000 /* VoiceFeedbackManager.swift */; };
+		A10001171A1B1C1D1E1F2000 /* VisionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000116001B1C1D1E1F1000 /* VisionManager.swift */; };
+		A10001181A1B1C1D1E1F2000 /* GeminiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000117112B1C1D1E1F1000 /* GeminiProvider.swift */; };
+		A10001191A1B1C1D1E1F2000 /* GeminiLiveAPIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000118223B1C1D1E1F1000 /* GeminiLiveAPIManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +37,9 @@
 		A1000113DD1B1C1D1E1F1000 /* VoiceAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAgent.swift; sourceTree = "<group>"; };
 		A1000114EE1B1C1D1E1F1000 /* ConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationView.swift; sourceTree = "<group>"; };
 		A1000115FF1B1C1D1E1F1000 /* VoiceFeedbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceFeedbackManager.swift; sourceTree = "<group>"; };
+		A1000116001B1C1D1E1F1000 /* VisionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionManager.swift; sourceTree = "<group>"; };
+		A1000117112B1C1D1E1F1000 /* GeminiProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiProvider.swift; sourceTree = "<group>"; };
+		A1000118223B1C1D1E1F1000 /* GeminiLiveAPIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiLiveAPIManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +81,9 @@
 				A1000111BB1B1C1D1E1F1000 /* AIProviderManager.swift */,
 				A1000112CC1B1C1D1E1F1000 /* SystemController.swift */,
 				A1000115FF1B1C1D1E1F1000 /* VoiceFeedbackManager.swift */,
+				A1000116001B1C1D1E1F1000 /* VisionManager.swift */,
+				A1000117112B1C1D1E1F1000 /* GeminiProvider.swift */,
+				A1000118223B1C1D1E1F1000 /* GeminiLiveAPIManager.swift */,
 				A10001031A1B1C1D1E1F1000 /* Assets.xcassets */,
 				A10001081A1B1C1D1E1F1000 /* VoiceAgent.entitlements */,
 				A10001051A1B1C1D1E1F2000 /* Preview Content */,
@@ -168,6 +177,9 @@
 				A10001141A1B1C1D1E1F2000 /* VoiceAgent.swift in Sources */,
 				A10001151A1B1C1D1E1F2000 /* ConfigurationView.swift in Sources */,
 				A10001161A1B1C1D1E1F2000 /* VoiceFeedbackManager.swift in Sources */,
+				A10001171A1B1C1D1E1F2000 /* VisionManager.swift in Sources */,
+				A10001181A1B1C1D1E1F2000 /* GeminiProvider.swift in Sources */,
+				A10001191A1B1C1D1E1F2000 /* GeminiLiveAPIManager.swift in Sources */,
 				A10001001A1B1C1D1E1F2000 /* VoiceAgentApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

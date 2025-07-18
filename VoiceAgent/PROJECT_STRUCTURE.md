@@ -15,8 +15,9 @@ VoiceAgent/
 │   ├── VoiceAgent.swift               # Core coordinator class
 │   ├── AudioManager.swift             # Speech recognition and audio handling
 │   ├── VoiceFeedbackManager.swift     # Text-to-speech and voice feedback
+│   ├── VisionManager.swift            # AI-powered screen analysis and visual understanding
 │   ├── ScreenManager.swift            # Screen capture and monitoring
-│   ├── AIProviderManager.swift        # Multi-provider AI integration
+│   ├── AIProviderManager.swift        # Multi-provider AI integration with vision support
 │   ├── SystemController.swift         # System automation and control
 │   ├── VoiceAgent.entitlements        # App permissions and capabilities
 │   ├── Assets.xcassets/               # App icons and resources
@@ -59,25 +60,56 @@ VoiceAgent/
 - Customizable voice settings (voice, volume, speed)
 - Priority-based speech queuing
 
-### 5. ScreenManager.swift
+### 5. VisionManager.swift
+- AI-powered screen analysis using Vision framework
+- Image processing and optimization for AI models
+- Text detection and OCR capabilities
+- UI element recognition and classification
+- Visual context generation for voice commands
+- Integration with OpenAI GPT-4 Vision, Claude 3, and LLaVA
+- Real-time screen understanding and description
+- Privacy-focused local analysis combined with cloud AI
+
+### 6. ScreenManager.swift
 - Real-time screen capture
 - Screen content analysis
 - Context extraction for AI
 - Performance-optimized monitoring
 
-### 6. AIProviderManager.swift
+### 6. ScreenManager.swift
+- Real-time screen capture
+- Screen content monitoring
+- Context extraction for AI
+- Performance-optimized monitoring
+- Integration with vision analysis
+
+### 7. AIProviderManager.swift
+- Multi-provider support with vision capabilities
+- Vision model selection and configuration
+- Image-to-text processing for vision models
+- Fallback systems for non-vision providers
+- API request handling for both text and vision
+- Model switching and configuration management
+
+### 8. SystemController.swift
 - Multi-provider support (OpenAI, Anthropic, Ollama, Groq)
 - Secure API key management
 - Model selection and configuration
 - Request/response handling
 
-### 7. SystemController.swift
+### 9. ConfigurationView.swift
+- User-friendly settings interface
+- AI provider and vision model configuration
+- Vision analysis settings and testing
+- Voice feedback customization
+- Permission management and system integration
+- Real-time testing and validation
 - Mouse click automation
 - Keyboard input simulation
 - Application launching
 - System-level interactions
 
-### 8. ConfigurationView.swift
+### 8. SystemController.swift
 - User-friendly settings interface
 - AI provider configuration
 - Permission management
@@ -98,11 +130,19 @@ VoiceAgent/
 - Priority-based speech management
 - Action confirmations and status updates
 
+### Vision Analysis
+- AI-powered screen understanding using multiple vision models
+- Real-time visual context awareness
+- UI element detection and classification
+- Text recognition and content analysis
+- Visual guidance for precise system control
+- Privacy-focused local processing with cloud AI enhancement
+
 ### AI Integration
-- **OpenAI**: GPT-4, GPT-4 Turbo, GPT-3.5 Turbo
-- **Anthropic**: Claude 3 Sonnet, Haiku, Opus
-- **Ollama**: Local models (Llama2, CodeLlama, Mistral, etc.)
-- **Groq**: Fast inference models
+- **OpenAI**: GPT-4, GPT-4 Turbo, GPT-3.5 Turbo + Vision models
+- **Anthropic**: Claude 3 Sonnet, Haiku, Opus + Vision capabilities
+- **Ollama**: Local models (Llama2, CodeLlama, Mistral, etc.) + LLaVA vision
+- **Groq**: Fast inference models (text-only)
 
 ### System Control
 - Precise mouse clicking
@@ -138,45 +178,51 @@ VoiceAgent/
 
 ## Usage Workflow
 
-1. **Startup**: App launches and initializes all subsystems
-2. **Configuration**: User configures AI provider, voice feedback settings, and grants permissions
+1. **Startup**: App launches and initializes all subsystems including vision
+2. **Configuration**: User configures AI provider, vision settings, voice feedback, and grants permissions
 3. **Listening**: App continuously listens for voice commands
-4. **Processing**: Speech is converted to text and sent to AI
-5. **Execution**: AI response is parsed and system actions are performed
-6. **Feedback**: Results are displayed to user
+4. **Vision Analysis**: Screen is analyzed using AI vision models for context
+5. **Processing**: Speech and visual context are combined and sent to AI
+6. **Execution**: AI response is parsed and system actions are performed with visual guidance
+7. **Feedback**: Results are displayed and spoken with detailed visual descriptions
 
 ## Command Examples
 
 ```
 Voice Input: "Click on the Safari icon"
 → Voice Feedback: "Executing: Click on the Safari icon"
-→ AI Processing: Analyzes screen context
-→ System Action: click(x: 100, y: 50)
-→ Voice Feedback: "Successfully clicked at coordinates 100, 50"
-→ Result: Safari application launches
+→ Vision Analysis: Captures screen and analyzes with AI vision model
+→ AI Processing: "I can see the Safari icon in the dock at coordinates 150, 80"
+→ System Action: click(x: 150, y: 80)
+→ Voice Feedback: "Successfully clicked at coordinates 150, 80"
+→ Voice Feedback: "Successfully opened Safari"
+→ Result: Safari application launches with visual confirmation
+
+Voice Input: "What's on my screen?"
+→ Voice Feedback: "Analyzing screen visually"
+→ Vision Analysis: Captures and analyzes current screen
+→ AI Processing: Detailed visual understanding of screen content
+→ Voice Feedback: "I can see a Safari browser window with the Apple website open. The main content shows a MacBook Pro with the heading 'Supercharged for pros'. There's a navigation bar with Mac, iPad, iPhone options."
+→ Result: Detailed spoken description of current screen content
 
 Voice Input: "Type hello world"
 → Voice Feedback: "Executing: Type hello world"
-→ AI Processing: Identifies typing command
+→ Vision Analysis: Identifies active text field or cursor location
+→ AI Processing: "I can see the cursor is active in the search field"
 → System Action: type("hello world")
 → Voice Feedback: "Successfully typed the text"
-→ Result: Text is typed at cursor location
-
-Voice Input: "Scroll down on this page"
-→ Voice Feedback: "Executing: Scroll down on this page"
-→ AI Processing: Understands scroll direction
-→ System Action: scroll("down")
-→ Voice Feedback: "Successfully scrolled down"
-→ Result: Page scrolls downward
+→ Result: Text is typed at cursor location with visual verification
 ```
 
 ## Architecture Benefits
 
 - **Modular Design**: Each component has a single responsibility
 - **Async/Await**: Modern concurrency for responsive UI
+- **Vision Integration**: AI-powered visual understanding
 - **Error Handling**: Comprehensive error management
-- **Extensibility**: Easy to add new AI providers or actions
+- **Extensibility**: Easy to add new AI providers, vision models, or actions
 - **Security**: Secure credential storage and minimal permissions
-- **Performance**: Optimized for real-time processing
+- **Performance**: Optimized for real-time processing and vision analysis
+- **Privacy**: Local processing options with user-controlled cloud integration
 
-This architecture provides a solid foundation for a powerful voice-controlled macOS assistant while maintaining security, performance, and user experience standards.
+This architecture provides a solid foundation for a powerful voice-controlled macOS assistant with advanced vision capabilities, maintaining security, performance, and user experience standards while enabling sophisticated visual understanding and contextual awareness.

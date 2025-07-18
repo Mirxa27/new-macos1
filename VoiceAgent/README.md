@@ -6,18 +6,29 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
 
 - **Real-time Speech Recognition**: Continuous voice listening using macOS Speech framework
 - **Live Voice Feedback**: Real-time audio confirmation and status updates during task execution
+- **Advanced Vision Analysis**: AI-powered screen understanding with GPT-4 Vision, Claude 3, and local vision models
 - **Multi-Provider AI Support**: Works with OpenAI, Anthropic, Ollama (local), and Groq
-- **Screen Monitoring**: Real-time screen capture and analysis for contextual understanding
+- **Intelligent Screen Monitoring**: Real-time screen capture with AI-enhanced contextual analysis
 - **System Control**: Complete Mac automation including clicks, typing, key presses, scrolling, and app launching
 - **Menu Bar Integration**: Quick access and control from the menu bar
-- **Configuration Interface**: Easy setup and management of AI providers, models, and voice feedback settings
+- **Configuration Interface**: Easy setup and management of AI providers, models, vision settings, and voice feedback
 
 ## AI Providers Supported
 
 1. **OpenAI** - GPT-4, GPT-4 Turbo, GPT-3.5 Turbo
+   - **Vision Models**: GPT-4 Vision, GPT-4 Turbo, GPT-4o
+   - **Capabilities**: Advanced screen analysis, UI element detection, text reading
+   
 2. **Anthropic** - Claude 3 Sonnet, Haiku, Opus
+   - **Vision Models**: Claude 3 Sonnet, Claude 3 Opus
+   - **Capabilities**: Detailed visual understanding, contextual screen analysis
+   
 3. **Ollama** - Local models (Llama2, CodeLlama, Mistral, Phi, Neural-Chat)
+   - **Vision Models**: LLaVA, BakLLaVA
+   - **Capabilities**: Privacy-focused local vision analysis
+   
 4. **Groq** - Mixtral, Llama2, Gemma
+   - **Vision Support**: Not available (text-only)
 
 ## System Requirements
 
@@ -43,13 +54,19 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
    - Select your preferred AI provider
    - Enter your API key (not required for Ollama)
    - Choose your preferred model
+   - Enable vision models if supported
    - Test the configuration
-3. **Voice Feedback Setup:**
+3. **Vision Analysis Setup:**
+   - Enable vision analysis
+   - Choose to use vision when available
+   - Test vision capabilities
+   - Configure screen analysis frequency
+4. **Voice Feedback Setup:**
    - Enable/disable voice feedback
    - Select voice from available system voices
    - Adjust volume and speaking speed
    - Test voice feedback
-4. Save settings
+5. Save settings
 
 ## Usage
 
@@ -81,24 +98,26 @@ The app responds to natural language commands such as:
 
 ## Voice Command Examples
 
-The app will speak back confirmations for each action:
+The app now provides intelligent visual understanding with detailed voice responses:
 
 ```
-You: "Click on the button in the top right"
-App: "Executing: Click on the button in the top right"
-App: "Successfully clicked at coordinates 800, 100"
+You: "What's on my screen?"
+App: "Analyzing screen visually"
+App: "I can see a Safari browser window with the Apple website. There's a navigation bar at the top with Home, Mac, iPad, and iPhone options. The main content shows a large image of the new MacBook Pro."
 
-You: "Type 'Hello, how are you today?'"
-App: "Executing: Type Hello, how are you today"
+You: "Click on the search button"
+App: "Executing: Click on the search button"
+App: "I can see a search icon in the top right corner of the Safari window"
+App: "Successfully clicked at coordinates 1200, 120"
+
+You: "Read the text on the page"
+App: "Executing: Read the text on the page"
+App: "Screen text includes: MacBook Pro, Supercharged for pros, M3 Pro and M3 Max, Available now"
+
+You: "Type in the search box"
+App: "Executing: Type in the search box"
+App: "I can see the search field is now active with a blinking cursor"
 App: "Successfully typed the text"
-
-You: "Open Safari"
-App: "Executing: Open Safari"
-App: "Successfully opened Safari"
-
-You: "Scroll down"
-App: "Executing: Scroll down"
-App: "Successfully scrolled down"
 ```
 
 ## Permissions Required
@@ -154,6 +173,12 @@ App: "Successfully scrolled down"
 - Try different voice in settings
 - Restart the app if voice becomes unresponsive
 
+### Vision Analysis Not Working
+- Ensure screen recording permission is granted
+- Check that your AI provider supports vision (OpenAI, Anthropic, or Ollama with LLaVA)
+- Verify vision analysis is enabled in configuration
+- Try switching to a vision-capable model
+
 ### Screen Monitoring Not Working
 - Grant screen recording permission in System Preferences
 - Restart the app after granting permissions
@@ -179,8 +204,9 @@ App: "Successfully scrolled down"
 - **VoiceAgent**: Main coordinator class
 - **AudioManager**: Handles speech recognition
 - **VoiceFeedbackManager**: Manages text-to-speech and voice feedback
-- **ScreenManager**: Manages screen capture and analysis
-- **AIProviderManager**: Manages multiple AI providers
+- **VisionManager**: AI-powered screen analysis and visual understanding
+- **ScreenManager**: Manages screen capture and monitoring
+- **AIProviderManager**: Manages multiple AI providers with vision support
 - **SystemController**: Handles system automation
 - **ConfigurationView**: Settings interface
 

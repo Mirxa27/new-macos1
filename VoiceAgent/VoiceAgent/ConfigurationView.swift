@@ -6,12 +6,12 @@ struct ConfigurationView: View {
     
     @State private var selectedProviderIndex = 0
     @State private var selectedModelIndex = 0
+    @State private var selectedVisionModelIndex = 0
     @State private var apiKey = ""
     @State private var customBaseURL = ""
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var selectedVoiceIndex = 0
-    @State private var selectedVisionModelIndex = 0
     @State private var availableVoices: [VoiceInfo] = []
     
     var body: some View {
@@ -79,29 +79,12 @@ struct ConfigurationView: View {
                             
                             Text(currentProvider.isConfigured ? "Configured" : "Not Configured")
                                 .foregroundColor(currentProvider.isConfigured ? .green : .orange)
-                        }
-                    }
-                    
-                    Section(header: Text("Voice Recognition")) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Listening Language")
-                                .font(.subheadline)
                             
-                            Picker("Language", selection: .constant(0)) {
-                                Text("English (US)").tag(0)
-                                Text("English (UK)").tag(1)
-                                Text("Spanish").tag(2)
-                                Text("French").tag(3)
+                            if currentProvider.supportsVision {
+                                Image(systemName: "eye.fill")
+                                    .foregroundColor(.blue)
+                                    .help("Supports vision analysis")
                             }
-                            .pickerStyle(.menu)
-                            .disabled(true) // TODO: Implement language switching
-                            
-                            Text("Wake Word")
-                                .font(.subheadline)
-                            
-                            TextField("Wake word", text: .constant("Hey Assistant"))
-                                .textFieldStyle(.roundedBorder)
-                                .disabled(true) // TODO: Implement wake word
                         }
                     }
                     
@@ -148,6 +131,31 @@ struct ConfigurationView: View {
                             }
                         }
                     }
+                    
+                    Section(header: Text("Voice Recognition")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Listening Language")
+                                .font(.subheadline)
+                            
+                            Picker("Language", selection: .constant(0)) {
+                                Text("English (US)").tag(0)
+                                Text("English (UK)").tag(1)
+                                Text("Spanish").tag(2)
+                                Text("French").tag(3)
+                            }
+                            .pickerStyle(.menu)
+                            .disabled(true) // TODO: Implement language switching
+                            
+                            Text("Wake Word")
+                                .font(.subheadline)
+                            
+                            TextField("Wake word", text: .constant("Hey Assistant"))
+                                .textFieldStyle(.roundedBorder)
+                                .disabled(true) // TODO: Implement wake word
+                        }
+                    }
+                    
+                    Section(header: Text("Voice Feedback")) {
                         VStack(alignment: .leading, spacing: 12) {
                             Toggle("Enable Voice Feedback", isOn: $voiceAgent.voiceFeedbackManager.isEnabled)
                             
@@ -170,7 +178,7 @@ struct ConfigurationView: View {
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Volume: \(Int(voiceAgent.voiceFeedbackManager.volume * 100))%")
+                                        Text("Volume: \\(Int(voiceAgent.voiceFeedbackManager.volume * 100))%")
                                             .font(.subheadline)
                                         
                                         Slider(value: Binding(
@@ -180,7 +188,7 @@ struct ConfigurationView: View {
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Speed: \(Int(voiceAgent.voiceFeedbackManager.rate * 100))%")
+                                        Text("Speed: \\(Int(voiceAgent.voiceFeedbackManager.rate * 100))%")
                                             .font(.subheadline)
                                         
                                         Slider(value: Binding(
@@ -209,67 +217,7 @@ struct ConfigurationView: View {
                         }
                     }
                     
-                    Section(header: Text("Voice Feedback")) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Toggle("Enable Voice Feedback", isOn: $voiceAgent.voiceFeedbackManager.isEnabled)
-                            
-                            if voiceAgent.voiceFeedbackManager.isEnabled {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Voice")
-                                        .font(.subheadline)
-                                    
-                                    Picker("Voice", selection: $selectedVoiceIndex) {
-                                        ForEach(0..<availableVoices.count, id: \.self) { index in
-                                            Text(availableVoices[index].displayName)
-                                                .tag(index)
-                                        }
-                                    }
-                                    .pickerStyle(.menu)
-                                    .onChange(of: selectedVoiceIndex) { _, newValue in
-                                        if newValue < availableVoices.count {
-                                            voiceAgent.voiceFeedbackManager.setVoice(availableVoices[newValue].identifier)
-                                        }
-                                    }
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Volume: \(Int(voiceAgent.voiceFeedbackManager.volume * 100))%")
-                                            .font(.subheadline)
-                                        
-                                        Slider(value: Binding(
-                                            get: { voiceAgent.voiceFeedbackManager.volume },
-                                            set: { voiceAgent.voiceFeedbackManager.setVolume($0) }
-                                        ), in: 0...1)
-                                    }
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Speed: \(Int(voiceAgent.voiceFeedbackManager.rate * 100))%")
-                                            .font(.subheadline)
-                                        
-                                        Slider(value: Binding(
-                                            get: { voiceAgent.voiceFeedbackManager.rate },
-                                            set: { voiceAgent.voiceFeedbackManager.setRate($0) }
-                                        ), in: 0.1...1.0)
-                                    }
-                                    
-                                    HStack {
-                                        Button("Test Voice") {
-                                            voiceAgent.voiceFeedbackManager.speak("Hello! This is a test of the voice feedback system.")
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                        
-                                        if voiceAgent.voiceFeedbackManager.isSpeaking {
-                                            Button("Stop") {
-                                                voiceAgent.voiceFeedbackManager.stopSpeaking()
-                                            }
-                                            .buttonStyle(.bordered)
-                                            .controlSize(.small)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Section(header: Text("System Permissions")) {
                         PermissionRow(
                             title: "Microphone Access",
                             description: "Required for voice recognition",
@@ -281,7 +229,7 @@ struct ConfigurationView: View {
                         
                         PermissionRow(
                             title: "Screen Recording",
-                            description: "Required for screen monitoring",
+                            description: "Required for screen monitoring and vision analysis",
                             isGranted: .constant(false), // TODO: Check actual permission
                             onRequest: {
                                 // TODO: Request screen recording permission
@@ -383,7 +331,7 @@ struct ConfigurationView: View {
             showingAlert = true
             
         } catch {
-            alertMessage = "Failed to save configuration: \(error.localizedDescription)"
+            alertMessage = "Failed to save configuration: \\(error.localizedDescription)"
             showingAlert = true
         }
     }
@@ -395,12 +343,12 @@ struct ConfigurationView: View {
                 let response = try await provider.processCommand("Say hello", screenContext: "Test screen context")
                 
                 await MainActor.run {
-                    alertMessage = "Test successful! Response: \(response.prefix(100))..."
+                    alertMessage = "Test successful! Response: \\(response.prefix(100))..."
                     showingAlert = true
                 }
             } catch {
                 await MainActor.run {
-                    alertMessage = "Test failed: \(error.localizedDescription)"
+                    alertMessage = "Test failed: \\(error.localizedDescription)"
                     showingAlert = true
                 }
             }
@@ -418,7 +366,7 @@ struct ConfigurationView: View {
                     )
                     
                     await MainActor.run {
-                        alertMessage = "Vision test successful! Analysis: \(analysis.prefix(200))..."
+                        alertMessage = "Vision test successful! Analysis: \\(analysis.prefix(200))..."
                         showingAlert = true
                         
                         // Also speak the result
@@ -432,7 +380,7 @@ struct ConfigurationView: View {
                 }
             } catch {
                 await MainActor.run {
-                    alertMessage = "Vision test failed: \(error.localizedDescription)"
+                    alertMessage = "Vision test failed: \\(error.localizedDescription)"
                     showingAlert = true
                 }
             }

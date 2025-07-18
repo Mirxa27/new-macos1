@@ -18,6 +18,12 @@ class VoiceAgent: ObservableObject {
     @Published var commandCount = 0
     @Published var recentCommands: [VoiceCommand] = []
     
+    // Live API Properties
+    @Published var isLiveAPIActive = false
+    @Published var liveAPIConnectionStatus = "Disconnected"
+    @Published var isLiveAPIListening = false
+    @Published var isLiveAPISpeaking = false
+    
     let audioManager = AudioManager()
     let screenManager = ScreenManager()
     let aiProviderManager = AIProviderManager()
@@ -398,4 +404,123 @@ class VoiceAgent: ObservableObject {
                 }
             }
         }
+    }    
+    // MARK: - Live API Controls
+    func toggleLiveAPI() {
+        if isLiveAPIActive {
+            stopLiveAPI()
+        } else {
+            startLiveAPI()
+        }
     }
+    
+    func startLiveAPI() {
+        Task {
+            do {
+                guard let provider = aiProviderManager.currentProvider else {
+                    let errorMsg = "No AI provider configured"
+                    liveAPIConnectionStatus = "Error: " + errorMsg
+                    voiceFeedbackManager.announceError(errorMsg)
+                    return
+                }
+                
+                guard provider.supportsLiveAPI else {
+                    let errorMsg = "Current provider does not support Live API"
+                    liveAPIConnectionStatus = "Error: " + errorMsg
+                    voiceFeedbackManager.announceError(errorMsg)
+                    return
+                }
+                
+                liveAPIConnectionStatus = "Connecting..."
+                voiceFeedbackManager.speak("Starting Live API session", priority: .high)
+                
+                try await provider.startLiveSession()
+                
+                await MainActor.run {
+                    self.isLiveAPIActive = true
+                    self.liveAPIConnectionStatus = "Connected"
+                    
+                    // Monitor Live API status if it's a Gemini provider
+                    if let geminiProvider = provider as? GeminiProvider {
+                        self.isLiveAPIListening = geminiProvider.liveAPIListening
+                        self.isLiveAPISpeaking = geminiProvider.liveAPISpeaking
+                        
+                        // Start monitoring Live API status
+                        self.startMonitoringLiveAPI(geminiProvider)
+                    }
+                }
+                
+                voiceFeedbackManager.speak("Live API session active", priority: .high)
+                
+                // Disable regular listening when Live API is active
+                if isListening {
+                    stopListening()
+                }
+                
+            } catch {
+                await MainActor.run {
+                    self.liveAPIConnectionStatus = "Failed: " + error.localizedDescription
+                }
+                voiceFeedbackManager.announceError("Failed to start Live API: " + error.localizedDescription)
+            }
+        }
+    }
+    
+    func stopLiveAPI() {
+        Task {
+            if let provider = aiProviderManager.currentProvider {
+                await provider.stopLiveSession()
+            }
+            
+            await MainActor.run {
+                self.isLiveAPIActive = false
+                self.liveAPIConnectionStatus = "Disconnected"
+                self.isLiveAPIListening = false
+                self.isLiveAPISpeaking = false
+            }
+            
+            voiceFeedbackManager.speak("Live API session ended", priority: .high)
+        }
+    }
+    
+    private func startMonitoringLiveAPI(_ geminiProvider: GeminiProvider) {
+        Task {
+            while isLiveAPIActive {
+                await MainActor.run {
+                    self.isLiveAPIListening = geminiProvider.liveAPIListening
+                    self.isLiveAPISpeaking = geminiProvider.liveAPISpeaking
+                    
+                    if geminiProvider.liveAPIConnected {
+                        self.liveAPIConnectionStatus = "Connected"
+                    } else {
+                        self.liveAPIConnectionStatus = "Disconnected"
+                        self.isLiveAPIActive = false
+                    }
+                }
+                
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            }
+        }
+    }
+    
+    func sendLiveTextMessage(_ text: String) {
+        Task {
+            do {
+                guard let provider = aiProviderManager.currentProvider,
+                      provider.supportsLiveAPI,
+                      isLiveAPIActive else {
+                    voiceFeedbackManager.announceError("Live API not active")
+                    return
+                }
+                
+                if let geminiProvider = provider as? GeminiProvider {
+                    try await geminiProvider.sendLiveTextMessage(text)
+                    voiceFeedbackManager.speak("Message sent to Live API", priority: .low)
+                }
+                
+            } catch {
+                voiceFeedbackManager.announceError("Failed to send message: " + error.localizedDescription)
+            }
+        }
+    }
+}
