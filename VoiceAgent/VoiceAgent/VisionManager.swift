@@ -77,13 +77,24 @@ class VisionManager: ObservableObject {
                             aiDescription = await self.getAIDescription(for: image) ?? "No AI description available"
                         }
                         
+                        let textScore = min(1.0, Float(detectedText.count) / 10.0)
+                        let elementScore: Float
+                        if uiElements.isEmpty {
+                            elementScore = 0.0
+                        } else {
+                            let total = uiElements.map { $0.confidence }.reduce(0, +)
+                            elementScore = total / Float(uiElements.count)
+                        }
+
+                        let confidence = min(1.0, (textScore + elementScore) / 2)
+
                         let analysis = ScreenAnalysis(
                             timestamp: Date(),
                             screenshot: image,
                             detectedText: detectedText,
                             uiElements: uiElements,
                             aiDescription: aiDescription,
-                            confidence: 0.8 // TODO: Calculate actual confidence
+                            confidence: confidence
                         )
                         
                         await MainActor.run {

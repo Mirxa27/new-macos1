@@ -30,6 +30,7 @@ class VoiceAgent: ObservableObject {
     let systemController = SystemController()
     let voiceFeedbackManager = VoiceFeedbackManager()
     let visionManager = VisionManager()
+    let permissionManager = PermissionManager()
     
     private var commandProcessingTask: Task<Void, Never>?
     
@@ -37,6 +38,7 @@ class VoiceAgent: ObservableObject {
         setupAudioManager()
         setupScreenManager()
         setupVisionManager()
+        permissionManager.refreshStatuses()
     }
     
     private func setupAudioManager() {

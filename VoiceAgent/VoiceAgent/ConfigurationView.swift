@@ -295,30 +295,27 @@ struct ConfigurationView: View {
                         PermissionRow(
                             title: "Microphone Access",
                             description: "Required for voice recognition",
-                            isGranted: .constant(true), // TODO: Check actual permission
+                            isGranted: $voiceAgent.permissionManager.microphoneGranted,
                             onRequest: {
-                                // TODO: Request microphone permission
+                                voiceAgent.permissionManager.requestMicrophonePermission { _ in }
                             }
                         )
-                        
+
                         PermissionRow(
                             title: "Screen Recording",
                             description: "Required for screen monitoring and vision analysis",
-                            isGranted: .constant(false), // TODO: Check actual permission
+                            isGranted: $voiceAgent.permissionManager.screenGranted,
                             onRequest: {
-                                // TODO: Request screen recording permission
+                                voiceAgent.permissionManager.requestScreenPermission { _ in }
                             }
                         )
-                        
+
                         PermissionRow(
                             title: "Accessibility",
                             description: "Required for system control",
-                            isGranted: .constant(false), // TODO: Check actual permission
+                            isGranted: $voiceAgent.permissionManager.accessibilityGranted,
                             onRequest: {
-                                // TODO: Open accessibility settings
-                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                                    NSWorkspace.shared.open(url)
-                                }
+                                voiceAgent.permissionManager.openAccessibilitySettings()
                             }
                         )
                     }
@@ -357,6 +354,7 @@ struct ConfigurationView: View {
         .onAppear {
             loadCurrentConfiguration()
             loadVoiceSettings()
+            voiceAgent.permissionManager.refreshStatuses()
         }
     }
     
