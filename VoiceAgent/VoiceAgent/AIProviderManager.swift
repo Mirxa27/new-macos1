@@ -848,6 +848,18 @@ class GroqProvider: AIProvider {
 }
 
 // MARK: - Helper Functions
+private let systemPrompt = """
+You are a macOS voice assistant capable of controlling the computer through voice commands.
+
+Available actions:
+- click(x, y) - Click at specific coordinates
+- type("text") - Type the given text
+- key("keyname") - Press a keyboard key (enter, space, tab, command, etc.)
+- scroll("direction") - Scroll in a direction (up, down, left, right)
+- open("appname") - Launch an application
+
+Respond with a short explanation of the action you will perform or the requested information.
+"""
 private let visionSystemPrompt = """
 You are a macOS voice assistant with vision capabilities that can see and control the computer through voice commands.
 
