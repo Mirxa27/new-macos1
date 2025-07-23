@@ -16,6 +16,8 @@ struct ConfigurationView: View {
     @State private var availableVoices: [VoiceInfo] = []
     @State private var wakeWord = ""
     @State private var selectedLanguageIndex = 0
+    @State private var systemPromptText = ""
+    @State private var visionPromptText = ""
     private let languageOptions: [(name: String, code: String)] = [
         ("English (US)", "en-US"),
         ("English (UK)", "en-GB"),
@@ -231,6 +233,24 @@ struct ConfigurationView: View {
                             }
                         }
                     }
+
+                    Section(header: Text("Prompt Settings")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("System Prompt")
+                                .font(.subheadline)
+
+                            TextEditor(text: $systemPromptText)
+                                .frame(minHeight: 80)
+                                .border(Color.secondary)
+
+                            Text("Vision Prompt")
+                                .font(.subheadline)
+
+                            TextEditor(text: $visionPromptText)
+                                .frame(minHeight: 80)
+                                .border(Color.secondary)
+                        }
+                    }
                     
                     Section(header: Text("Live API")) {
                         VStack(alignment: .leading, spacing: 12) {
@@ -370,6 +390,8 @@ struct ConfigurationView: View {
             loadCurrentConfiguration()
             loadVoiceSettings()
             voiceAgent.permissionManager.refreshStatuses()
+            systemPromptText = getSystemPrompt()
+            visionPromptText = getVisionSystemPrompt()
         }
     }
     
@@ -413,6 +435,9 @@ struct ConfigurationView: View {
             
             voiceAgent.aiProviderManager.selectProvider(provider)
             voiceAgent.aiProviderManager.selectModel(selectedModel)
+
+            updateSystemPrompt(systemPromptText)
+            updateVisionSystemPrompt(visionPromptText)
             
             alertMessage = "Configuration saved successfully!"
             showingAlert = true

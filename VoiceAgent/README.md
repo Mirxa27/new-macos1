@@ -14,6 +14,7 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
 - **Menu Bar Integration**: Quick access and control from the menu bar
 - **Configuration Interface**: Easy setup and management of AI providers, models, vision settings, and voice feedback
 - **Custom Wake Word & Language Selection**: Choose your preferred listening language and optional wake word trigger
+- **Custom Prompts**: Adjust the system and vision prompts for personalized behavior
 
 ## AI Providers Supported
 

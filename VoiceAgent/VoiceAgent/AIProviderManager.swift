@@ -849,7 +849,8 @@ class GroqProvider: AIProvider {
 }
 
 // MARK: - Helper Functions
-private let systemPrompt = """
+fileprivate var systemPrompt: String = {
+    UserDefaults.standard.string(forKey: "systemPrompt") ?? """
 You are a macOS voice assistant capable of controlling the computer through voice commands.
 
 Available actions:
@@ -861,7 +862,11 @@ Available actions:
 
 Respond with a short explanation of the action you will perform or the requested information.
 """
-private let visionSystemPrompt = """
+}()
+
+func getSystemPrompt() -> String { systemPrompt }
+fileprivate var visionSystemPrompt: String = {
+    UserDefaults.standard.string(forKey: "visionSystemPrompt") ?? """
 You are a macOS voice assistant with vision capabilities that can see and control the computer through voice commands.
 
 Your role is to interpret user voice commands while analyzing the current screen image to provide context-aware responses.
@@ -887,6 +892,9 @@ Examples:
 
 Be precise with coordinates based on what you can see in the image.
 """
+}()
+
+func getVisionSystemPrompt() -> String { visionSystemPrompt }
 
 private func buildVisionPrompt(command: String, screenContext: String) -> String {
     return """
@@ -897,6 +905,16 @@ private func buildVisionPrompt(command: String, screenContext: String) -> String
     
     Please analyze the provided screenshot image and the user command to provide the appropriate response or action. Use the visual information to give precise coordinates and detailed context.
     """
+}
+
+func updateSystemPrompt(_ prompt: String) {
+    systemPrompt = prompt
+    UserDefaults.standard.set(prompt, forKey: "systemPrompt")
+}
+
+func updateVisionSystemPrompt(_ prompt: String) {
+    visionSystemPrompt = prompt
+    UserDefaults.standard.set(prompt, forKey: "visionSystemPrompt")
 }
 
 // MARK: - Keychain Helpers
