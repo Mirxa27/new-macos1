@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import Speech
 import AVFoundation
@@ -170,4 +171,4 @@ enum AudioManagerError: Error, LocalizedError {
             return "Speech recognizer not available"
         }
     }
-}
+}#endif

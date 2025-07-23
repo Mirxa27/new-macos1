@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 
 struct ConfigurationView: View {
@@ -546,4 +547,4 @@ extension View {
 #Preview {
     ConfigurationView()
         .environmentObject(VoiceAgent())
-}
+}#endif

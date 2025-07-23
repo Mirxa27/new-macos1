@@ -1,3 +1,4 @@
+#if os(macOS)
 //
 //  GeminiLiveAPIManager.swift
 //  VoiceAgent
@@ -672,4 +673,4 @@ enum GeminiLiveAPIError: Error, LocalizedError {
             return "Decoding error: \(message)"
         }
     }
-}
+}#endif

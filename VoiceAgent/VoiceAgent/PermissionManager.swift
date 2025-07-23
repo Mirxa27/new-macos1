@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import AVFoundation
 import AppKit
@@ -47,3 +48,4 @@ class PermissionManager: ObservableObject {
         accessibilityGranted = AXIsProcessTrusted()
     }
 }
+#endif

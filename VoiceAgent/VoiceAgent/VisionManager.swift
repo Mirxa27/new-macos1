@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import AppKit
 import Vision
@@ -340,3 +341,4 @@ class VisionManager: ObservableObject {
         isVisionEnabled = UserDefaults.standard.object(forKey: "visionEnabled") as? Bool ?? true
     }
 }
+#endif

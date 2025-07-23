@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import SwiftUI
 import Speech
@@ -557,3 +558,4 @@ class VoiceAgent: ObservableObject {
         }
     }
 }
+#endif

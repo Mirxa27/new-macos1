@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import ScreenCaptureKit
 import CoreGraphics
@@ -192,4 +193,4 @@ enum ScreenManagerError: Error, LocalizedError {
             return "Failed to create screen capture stream"
         }
     }
-}
+}#endif

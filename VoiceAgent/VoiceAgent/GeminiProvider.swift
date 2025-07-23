@@ -1,3 +1,4 @@
+#if os(macOS)
 //
 //  GeminiProvider.swift
 //  VoiceAgent
@@ -359,4 +360,4 @@ class GeminiProvider: AIProvider, ObservableObject {
     init() {
         self.apiKey = loadAPIKey()
     }
-}
+}#endif

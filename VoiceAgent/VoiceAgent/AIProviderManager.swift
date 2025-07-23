@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 
 protocol AIProvider {
@@ -964,3 +965,4 @@ enum AIProviderError: Error, LocalizedError {
         }
     }
 }
+#endif
