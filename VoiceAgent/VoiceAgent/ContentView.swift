@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 
 struct ContentView: View {
@@ -284,3 +285,4 @@ struct CommandRow: View {
     ContentView()
         .environmentObject(VoiceAgent())
 }
+#endif

@@ -21,7 +21,12 @@ let package = Package(
         .executableTarget(
             name: "VoiceAgent",
             dependencies: [],
-            path: "VoiceAgent"
+            path: "VoiceAgent",
+            exclude: [
+                "VoiceAgent.entitlements",
+                "Assets.xcassets",
+                "Preview Content/Preview Assets.xcassets"
+            ]
         ),
         .testTarget(
             name: "VoiceAgentTests",

@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import SwiftUI
 import Speech
@@ -23,20 +24,37 @@ class VoiceAgent: ObservableObject {
     @Published var liveAPIConnectionStatus = "Disconnected"
     @Published var isLiveAPIListening = false
     @Published var isLiveAPISpeaking = false
+
+    // Speech settings
+    @Published var speechLanguage: String = UserDefaults.standard.string(forKey: "speechLanguage") ?? "en-US"
+    @Published var wakeWordEnabled: Bool = UserDefaults.standard.object(forKey: "wakeWordEnabled") as? Bool ?? false
+    @Published var wakeWord: String = UserDefaults.standard.string(forKey: "wakeWord") ?? "Hey Assistant"
     
     let audioManager = AudioManager()
     let screenManager = ScreenManager()
     let aiProviderManager = AIProviderManager()
     let systemController = SystemController()
     let voiceFeedbackManager = VoiceFeedbackManager()
-    let visionManager = VisionManager()
+    let visionManager: VisionManager
+    let permissionManager = PermissionManager()
     
     private var commandProcessingTask: Task<Void, Never>?
     
     init() {
+        visionManager = VisionManager(aiProviderManager: aiProviderManager)
         setupAudioManager()
         setupScreenManager()
         setupVisionManager()
+        audioManager.updateLanguage(speechLanguage)
+        permissionManager.refreshStatuses()
+
+        if wakeWordEnabled {
+            Task {
+                try? await audioManager.startListening()
+                isListening = true
+                statusMessage = "Listening for wake word..."
+            }
+        }
     }
     
     private func setupAudioManager() {
@@ -124,7 +142,15 @@ class VoiceAgent: ObservableObject {
     }
     
     private func processSpeechCommand(_ text: String) {
-        let command = VoiceCommand(text: text, timestamp: Date())
+        var processedText = text
+        if wakeWordEnabled {
+            let lower = text.lowercased()
+            let trigger = wakeWord.lowercased()
+            guard lower.hasPrefix(trigger) else { return }
+            processedText = String(text.dropFirst(trigger.count)).trimmingCharacters(in: .whitespaces)
+        }
+
+        let command = VoiceCommand(text: processedText, timestamp: Date())
         recentCommands.insert(command, at: 0)
         commandCount += 1
         
@@ -132,8 +158,8 @@ class VoiceAgent: ObservableObject {
             recentCommands.removeLast()
         }
         
-        statusMessage = "Processing: \(text)"
-        voiceFeedbackManager.announceCommandReceived(text)
+        statusMessage = "Processing: \(processedText)"
+        voiceFeedbackManager.announceCommandReceived(processedText)
         
         commandProcessingTask?.cancel()
         commandProcessingTask = Task {
@@ -168,8 +194,8 @@ class VoiceAgent: ObservableObject {
                     
                     // Get enhanced context from vision analysis
                     let visionContext = visionManager.generateContextualDescription(for: command.text)
-                    
-                    response = try await aiProviderManager.processCommandWithVision(command.text, image: screenshot)
+
+                    response = try await aiProviderManager.processCommandWithVision(command.text, screenContext: visionContext, image: screenshot)
                     
                     // Provide detailed voice feedback about what was seen
                     if !analysis.aiDescription.isEmpty {
@@ -215,14 +241,6 @@ class VoiceAgent: ObservableObject {
     private func updateCommandResult(_ command: VoiceCommand, result: String, executed: Bool = false) {
         Task { @MainActor in
             if let index = recentCommands.firstIndex(where: { $0.id == command.id }) {
-                recentCommands[index] = VoiceCommand(
-                    text: command.text,
-                    timestamp: command.timestamp
-                )
-                recentCommands[index] = VoiceCommand(
-                    text: command.text,
-                    timestamp: command.timestamp
-                )
                 var updatedCommand = recentCommands[index]
                 updatedCommand.result = result
                 updatedCommand.executed = executed
@@ -367,6 +385,22 @@ class VoiceAgent: ObservableObject {
     
     func stopVoiceFeedback() {
         voiceFeedbackManager.stopSpeaking()
+    }
+
+    func updateSpeechLanguage(_ code: String) {
+        speechLanguage = code
+        audioManager.updateLanguage(code)
+        UserDefaults.standard.set(code, forKey: "speechLanguage")
+    }
+
+    func updateWakeWord(_ word: String) {
+        wakeWord = word
+        UserDefaults.standard.set(word, forKey: "wakeWord")
+    }
+
+    func toggleWakeWordEnabled() {
+        wakeWordEnabled.toggle()
+        UserDefaults.standard.set(wakeWordEnabled, forKey: "wakeWordEnabled")
     }
     
     // Vision controls
@@ -524,3 +558,4 @@ class VoiceAgent: ObservableObject {
         }
     }
 }
+#endif

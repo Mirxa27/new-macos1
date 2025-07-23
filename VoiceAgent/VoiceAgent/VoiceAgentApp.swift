@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 
 @main
@@ -48,3 +49,4 @@ struct VoiceAgentApp: App {
         .menuBarExtraStyle(.window)
     }
 }
+#endif
