@@ -216,3 +216,14 @@ Screen → ScreenCaptureKit → CGImage → JPEG → Base64 → WebSocket → Ge
 - **Immediate Disconnect**: Instant session termination available
 
 This Live API integration represents a significant advancement in natural human-computer interaction, providing seamless, real-time communication with AI while maintaining user control and privacy.
+## Node.js Demo
+
+A simplified Node.js example is included at `Examples/GeminiLiveAPINodeDemo.ts`. It demonstrates how to connect to Gemini Live API using the `@google/genai` package and save streamed audio responses.
+
+Run it with:
+```bash
+npm install @google/genai mime
+npm install -D @types/node
+ts-node Examples/GeminiLiveAPINodeDemo.ts
+```
+

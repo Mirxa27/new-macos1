@@ -229,6 +229,7 @@ App: "Successfully typed the text"
 2. Open `VoiceAgent.xcodeproj` in Xcode
 3. Build and run
    - Building outside of macOS is not supported. The project relies on macOS-only frameworks such as `Speech` and will fail with `no such module 'Speech'` when compiled on Linux.
+4. Optionally run the Node.js demo in `Examples/GeminiLiveAPINodeDemo.ts` to test Gemini Live API from the command line.
 
 ### Architecture
 - **VoiceAgent**: Main coordinator class
