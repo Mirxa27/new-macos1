@@ -5,6 +5,8 @@ import CoreML
 
 @MainActor
 class VisionManager: ObservableObject {
+    private let aiProviderManager: AIProviderManager
+
     @Published var isVisionEnabled = true
     @Published var lastAnalysis: ScreenAnalysis?
     @Published var analysisHistory: [ScreenAnalysis] = []
@@ -199,24 +201,19 @@ class VisionManager: ObservableObject {
     }
     
     private func getAIDescription(for image: NSImage) async -> String? {
-        // This will be implemented by the AI providers
-        // For now, return a placeholder
         return await analyzeImageWithAI(image)
     }
-    
+
     private func analyzeImageWithAI(_ image: NSImage) async -> String? {
-        // Convert NSImage to base64 for AI analysis
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+        do {
+            return try await aiProviderManager.analyzeScreenImage(
+                image,
+                prompt: "Describe what you see in this screenshot in detail. Include UI elements, text content, and overall layout."
+            )
+        } catch {
+            print("AI analysis error: \(error)")
             return nil
         }
-        
-        let base64String = pngData.base64EncodedString()
-        
-        // This would be called by the AIProviderManager
-        // Return a placeholder for now
-        return "Screen contains various UI elements including windows, buttons, and text. Analysis requires AI provider integration."
     }
     
     func generateDetailedDescription() -> String {
@@ -334,7 +331,8 @@ class VisionManager: ObservableObject {
         lastAnalysis = nil
     }
     
-    init() {
+    init(aiProviderManager: AIProviderManager) {
+        self.aiProviderManager = aiProviderManager
         loadSettings()
     }
     

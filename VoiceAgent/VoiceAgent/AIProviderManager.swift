@@ -74,13 +74,11 @@ class AIProviderManager: ObservableObject {
         saveConfiguration()
     }
     
-    func processCommandWithVision(_ command: String, image: NSImage?) async throws -> String {
+    func processCommandWithVision(_ command: String, screenContext: String, image: NSImage?) async throws -> String {
         guard let provider = currentProvider else {
             throw AIProviderError.notConfigured
         }
-        
-        let screenContext = "Recent screen analysis available"
-        
+
         if let image = image, provider.supportsVision && useVisionWhenAvailable {
             return try await provider.processCommandWithVision(command, screenContext: screenContext, image: image)
         } else {

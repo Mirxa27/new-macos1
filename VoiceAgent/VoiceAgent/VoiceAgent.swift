@@ -34,12 +34,13 @@ class VoiceAgent: ObservableObject {
     let aiProviderManager = AIProviderManager()
     let systemController = SystemController()
     let voiceFeedbackManager = VoiceFeedbackManager()
-    let visionManager = VisionManager()
+    let visionManager: VisionManager
     let permissionManager = PermissionManager()
     
     private var commandProcessingTask: Task<Void, Never>?
     
     init() {
+        visionManager = VisionManager(aiProviderManager: aiProviderManager)
         setupAudioManager()
         setupScreenManager()
         setupVisionManager()
@@ -192,8 +193,8 @@ class VoiceAgent: ObservableObject {
                     
                     // Get enhanced context from vision analysis
                     let visionContext = visionManager.generateContextualDescription(for: command.text)
-                    
-                    response = try await aiProviderManager.processCommandWithVision(command.text, image: screenshot)
+
+                    response = try await aiProviderManager.processCommandWithVision(command.text, screenContext: visionContext, image: screenshot)
                     
                     // Provide detailed voice feedback about what was seen
                     if !analysis.aiDescription.isEmpty {
