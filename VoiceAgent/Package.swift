@@ -3,9 +3,6 @@ import PackageDescription
 
 let package = Package(
     name: "VoiceAgent",
-    platforms: [
-        .macOS(.v14)
-    ],
     products: [
         .executable(
             name: "VoiceAgent",
