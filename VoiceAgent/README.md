@@ -13,6 +13,7 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
 - **System Control**: Complete Mac automation including clicks, typing, key presses, scrolling, and app launching
 - **Menu Bar Integration**: Quick access and control from the menu bar
 - **Configuration Interface**: Easy setup and management of AI providers, models, vision settings, and voice feedback
+- **Custom Wake Word & Language Selection**: Choose your preferred listening language and optional wake word trigger
 
 ## AI Providers Supported
 
@@ -72,12 +73,15 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
    - Select voice from available system voices
    - Adjust volume and speaking speed
    - Test voice feedback
-5. **Live API Setup (Gemini only):**
+5. **Speech Recognition Settings:**
+   - Choose your preferred listening language
+   - Enable a custom wake word and specify the phrase
+6. **Live API Setup (Gemini only):**
    - Enable Live API for real-time conversation
    - Test Live API connection
    - Monitor audio streaming status
    - Send test messages
-6. Save settings
+7. Save settings
 
 ## Usage
 

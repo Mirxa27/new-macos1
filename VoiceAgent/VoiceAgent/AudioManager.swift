@@ -7,6 +7,8 @@ class AudioManager: NSObject, ObservableObject {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var audioEngine = AVAudioEngine()
+
+    private(set) var languageCode: String = "en-US"
     
     var onSpeechRecognized: ((String) -> Void)?
     var onStatusChanged: ((String) -> Void)?
@@ -15,9 +17,15 @@ class AudioManager: NSObject, ObservableObject {
         super.init()
         setupSpeechRecognizer()
     }
-    
+
     private func setupSpeechRecognizer() {
-        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: languageCode))
+        speechRecognizer?.delegate = self
+    }
+
+    func updateLanguage(_ code: String) {
+        languageCode = code
+        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: code))
         speechRecognizer?.delegate = self
     }
     

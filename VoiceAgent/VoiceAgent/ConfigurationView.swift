@@ -13,6 +13,14 @@ struct ConfigurationView: View {
     @State private var alertMessage = ""
     @State private var selectedVoiceIndex = 0
     @State private var availableVoices: [VoiceInfo] = []
+    @State private var wakeWord = ""
+    @State private var selectedLanguageIndex = 0
+    private let languageOptions: [(name: String, code: String)] = [
+        ("English (US)", "en-US"),
+        ("English (UK)", "en-GB"),
+        ("Spanish", "es-ES"),
+        ("French", "fr-FR")
+    ]
     
     var body: some View {
         NavigationView {
@@ -137,21 +145,27 @@ struct ConfigurationView: View {
                             Text("Listening Language")
                                 .font(.subheadline)
                             
-                            Picker("Language", selection: .constant(0)) {
-                                Text("English (US)").tag(0)
-                                Text("English (UK)").tag(1)
-                                Text("Spanish").tag(2)
-                                Text("French").tag(3)
+                            Picker("Language", selection: $selectedLanguageIndex) {
+                                ForEach(0..<languageOptions.count, id: \..self) { index in
+                                    Text(languageOptions[index].name).tag(index)
+                                }
                             }
                             .pickerStyle(.menu)
-                            .disabled(true) // TODO: Implement language switching
-                            
+                            .onChange(of: selectedLanguageIndex) { _, newValue in
+                                let code = languageOptions[newValue].code
+                                voiceAgent.updateSpeechLanguage(code)
+                            }
+
                             Text("Wake Word")
                                 .font(.subheadline)
-                            
-                            TextField("Wake word", text: .constant("Hey Assistant"))
+
+                            Toggle("Enable Wake Word", isOn: $voiceAgent.wakeWordEnabled)
+
+                            TextField("Wake word", text: $wakeWord)
                                 .textFieldStyle(.roundedBorder)
-                                .disabled(true) // TODO: Implement wake word
+                                .onChange(of: wakeWord) { _, newValue in
+                                    voiceAgent.updateWakeWord(newValue)
+                                }
                         }
                     }
                     
@@ -472,6 +486,13 @@ struct ConfigurationView: View {
         if currentProvider.supportsVision && !currentProvider.visionModels.isEmpty {
             selectedVisionModelIndex = 0
         }
+
+        // Load speech language
+        if let index = languageOptions.firstIndex(where: { $0.code == voiceAgent.speechLanguage }) {
+            selectedLanguageIndex = index
+        }
+
+        wakeWord = voiceAgent.wakeWord
     }
 }
 
