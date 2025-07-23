@@ -1,3 +1,4 @@
+#if os(macOS)
 //
 //  GeminiProvider.swift
 //  VoiceAgent
@@ -6,6 +7,7 @@
 //
 
 import Foundation
+import AppKit
 import Security
 
 class GeminiProvider: AIProvider, ObservableObject {
@@ -59,7 +61,16 @@ class GeminiProvider: AIProvider, ObservableObject {
         return try await makeAPIRequest(prompt: prompt, model: selectedModel)
     }
     
-    func processCommandWithVision(_ command: String, context: String, imageData: Data) async throws -> String {
+    func processCommandWithVision(_ command: String, screenContext: String, image: NSImage) async throws -> String {
+        guard let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData),
+              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+            throw AIProviderError.imageProcessingFailed
+        }
+        return try await processCommandWithVision(command, context: screenContext, imageData: pngData)
+    }
+
+    private func processCommandWithVision(_ command: String, context: String, imageData: Data) async throws -> String {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             throw AIProviderError.configurationMissing
         }
@@ -70,13 +81,20 @@ class GeminiProvider: AIProvider, ObservableObject {
         return try await makeVisionAPIRequest(prompt: prompt, imageData: base64Image, model: selectedModel)
     }
     
-    func analyzeImage(_ imageData: Data, prompt: String) async throws -> String {
+    func analyzeImage(_ image: NSImage, prompt: String? = nil) async throws -> String {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             throw AIProviderError.configurationMissing
         }
-        
-        let base64Image = imageToBase64(imageData)
-        return try await makeVisionAPIRequest(prompt: prompt, imageData: base64Image, model: selectedModel)
+
+        guard let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData),
+              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+            throw AIProviderError.imageProcessingFailed
+        }
+
+        let base64Image = imageToBase64(pngData)
+        let analysisPrompt = prompt ?? "Describe what you see in this screenshot in detail. Include UI elements, text content, and overall layout."
+        return try await makeVisionAPIRequest(prompt: analysisPrompt, imageData: base64Image, model: selectedModel)
     }
     
     // MARK: - Live API Implementation
@@ -342,4 +360,4 @@ class GeminiProvider: AIProvider, ObservableObject {
     init() {
         self.apiKey = loadAPIKey()
     }
-}
+}#endif

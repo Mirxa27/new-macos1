@@ -13,6 +13,8 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
 - **System Control**: Complete Mac automation including clicks, typing, key presses, scrolling, and app launching
 - **Menu Bar Integration**: Quick access and control from the menu bar
 - **Configuration Interface**: Easy setup and management of AI providers, models, vision settings, and voice feedback
+- **Custom Wake Word & Language Selection**: Choose your preferred listening language and optional wake word trigger
+- **Custom Prompts**: Adjust the system and vision prompts for personalized behavior
 
 ## AI Providers Supported
 
@@ -72,12 +74,15 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
    - Select voice from available system voices
    - Adjust volume and speaking speed
    - Test voice feedback
-5. **Live API Setup (Gemini only):**
+5. **Speech Recognition Settings:**
+   - Choose your preferred listening language
+   - Enable a custom wake word and specify the phrase
+6. **Live API Setup (Gemini only):**
    - Enable Live API for real-time conversation
    - Test Live API connection
    - Monitor audio streaming status
    - Send test messages
-6. Save settings
+7. Save settings
 
 ## Usage
 
@@ -224,6 +229,13 @@ App: "Successfully typed the text"
 1. Clone the repository
 2. Open `VoiceAgent.xcodeproj` in Xcode
 3. Build and run
+   - Building outside of macOS is not supported. The project relies on macOS-only frameworks such as `Speech` and will fail with `no such module 'Speech'` when compiled on Linux.
+4. Optionally run the Node.js demo under `Examples` to test Gemini Live API from the command line:
+   ```bash
+   cd Examples
+   npm install
+   npm run start
+   ```
 
 ### Architecture
 - **VoiceAgent**: Main coordinator class

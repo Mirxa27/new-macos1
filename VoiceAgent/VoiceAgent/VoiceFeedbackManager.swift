@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import AVFoundation
 
@@ -233,4 +234,4 @@ extension VoiceFeedbackManager {
     func announceScreenMonitoringStopped() {
         speak("Screen monitoring disabled", priority: .normal)
     }
-}
+}#endif
