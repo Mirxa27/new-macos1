@@ -228,6 +228,7 @@ App: "Successfully typed the text"
 1. Clone the repository
 2. Open `VoiceAgent.xcodeproj` in Xcode
 3. Build and run
+   - Building outside of macOS is not supported. The project relies on macOS-only frameworks such as `Speech` and will fail with `no such module 'Speech'` when compiled on Linux.
 
 ### Architecture
 - **VoiceAgent**: Main coordinator class
