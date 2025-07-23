@@ -222,8 +222,8 @@ A simplified Node.js example is included at `Examples/GeminiLiveAPINodeDemo.ts`.
 
 Run it with:
 ```bash
-npm install @google/genai mime
-npm install -D @types/node
-ts-node Examples/GeminiLiveAPINodeDemo.ts
+cd Examples
+npm install
+npm run start
 ```
 

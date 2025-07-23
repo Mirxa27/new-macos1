@@ -1,8 +1,8 @@
 // Gemini Live API demo using @google/genai
 // To run this demo:
-//   npm install @google/genai mime
-//   npm install -D @types/node
-//   node dist/GeminiLiveAPINodeDemo.js (after compiling with tsc)
+//   cd Examples
+//   npm install
+//   npm run start
 import {
   GoogleGenAI,
   LiveServerMessage,
