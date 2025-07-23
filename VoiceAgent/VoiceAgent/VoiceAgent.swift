@@ -239,14 +239,6 @@ class VoiceAgent: ObservableObject {
     private func updateCommandResult(_ command: VoiceCommand, result: String, executed: Bool = false) {
         Task { @MainActor in
             if let index = recentCommands.firstIndex(where: { $0.id == command.id }) {
-                recentCommands[index] = VoiceCommand(
-                    text: command.text,
-                    timestamp: command.timestamp
-                )
-                recentCommands[index] = VoiceCommand(
-                    text: command.text,
-                    timestamp: command.timestamp
-                )
                 var updatedCommand = recentCommands[index]
                 updatedCommand.result = result
                 updatedCommand.executed = executed
