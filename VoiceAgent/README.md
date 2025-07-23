@@ -82,7 +82,16 @@ A comprehensive macOS voice assistant that can control your Mac through natural 
    - Test Live API connection
    - Monitor audio streaming status
    - Send test messages
-7. Save settings
+7. **Prompt Settings:**
+   - Customize the assistant's System Prompt
+   - Customize the Vision Prompt for screen analysis
+8. Save settings
+
+### Custom Prompts
+
+Use the **Prompt Settings** section to fine-tune how the assistant behaves. The
+System Prompt controls text-based commands, while the Vision Prompt guides
+screen analysis. Changes are saved automatically.
 
 ## Usage
 
