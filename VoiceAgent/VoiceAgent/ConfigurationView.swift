@@ -133,7 +133,19 @@ struct ConfigurationView: View {
                                         Text("Last Analysis:")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
-                                        
+
+                                        if let screenshot = lastAnalysis.screenshot {
+                                            Image(nsImage: screenshot)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(maxHeight: 150)
+                                                .cornerRadius(8)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .stroke(Color.secondary.opacity(0.5))
+                                                )
+                                        }
+
                                         Text(lastAnalysis.summary)
                                             .font(.caption)
                                             .lineLimit(2)
