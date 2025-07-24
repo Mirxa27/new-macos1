@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import ScreenCaptureKit
 import CoreGraphics
@@ -193,3 +194,4 @@ enum ScreenManagerError: Error, LocalizedError {
         }
     }
 }
+#endif

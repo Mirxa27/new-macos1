@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 
 struct ConfigurationView: View {
@@ -13,6 +14,16 @@ struct ConfigurationView: View {
     @State private var alertMessage = ""
     @State private var selectedVoiceIndex = 0
     @State private var availableVoices: [VoiceInfo] = []
+    @State private var wakeWord = ""
+    @State private var selectedLanguageIndex = 0
+    @State private var systemPromptText = ""
+    @State private var visionPromptText = ""
+    private let languageOptions: [(name: String, code: String)] = [
+        ("English (US)", "en-US"),
+        ("English (UK)", "en-GB"),
+        ("Spanish", "es-ES"),
+        ("French", "fr-FR")
+    ]
     
     var body: some View {
         NavigationView {
@@ -137,21 +148,27 @@ struct ConfigurationView: View {
                             Text("Listening Language")
                                 .font(.subheadline)
                             
-                            Picker("Language", selection: .constant(0)) {
-                                Text("English (US)").tag(0)
-                                Text("English (UK)").tag(1)
-                                Text("Spanish").tag(2)
-                                Text("French").tag(3)
+                            Picker("Language", selection: $selectedLanguageIndex) {
+                                ForEach(0..<languageOptions.count, id: \..self) { index in
+                                    Text(languageOptions[index].name).tag(index)
+                                }
                             }
                             .pickerStyle(.menu)
-                            .disabled(true) // TODO: Implement language switching
-                            
+                            .onChange(of: selectedLanguageIndex) { _, newValue in
+                                let code = languageOptions[newValue].code
+                                voiceAgent.updateSpeechLanguage(code)
+                            }
+
                             Text("Wake Word")
                                 .font(.subheadline)
-                            
-                            TextField("Wake word", text: .constant("Hey Assistant"))
+
+                            Toggle("Enable Wake Word", isOn: $voiceAgent.wakeWordEnabled)
+
+                            TextField("Wake word", text: $wakeWord)
                                 .textFieldStyle(.roundedBorder)
-                                .disabled(true) // TODO: Implement wake word
+                                .onChange(of: wakeWord) { _, newValue in
+                                    voiceAgent.updateWakeWord(newValue)
+                                }
                         }
                     }
                     
@@ -214,6 +231,24 @@ struct ConfigurationView: View {
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    Section(header: Text("Prompt Settings")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("System Prompt")
+                                .font(.subheadline)
+
+                            TextEditor(text: $systemPromptText)
+                                .frame(minHeight: 80)
+                                .border(Color.secondary)
+
+                            Text("Vision Prompt")
+                                .font(.subheadline)
+
+                            TextEditor(text: $visionPromptText)
+                                .frame(minHeight: 80)
+                                .border(Color.secondary)
                         }
                     }
                     
@@ -295,30 +330,27 @@ struct ConfigurationView: View {
                         PermissionRow(
                             title: "Microphone Access",
                             description: "Required for voice recognition",
-                            isGranted: .constant(true), // TODO: Check actual permission
+                            isGranted: $voiceAgent.permissionManager.microphoneGranted,
                             onRequest: {
-                                // TODO: Request microphone permission
+                                voiceAgent.permissionManager.requestMicrophonePermission { _ in }
                             }
                         )
-                        
+
                         PermissionRow(
                             title: "Screen Recording",
                             description: "Required for screen monitoring and vision analysis",
-                            isGranted: .constant(false), // TODO: Check actual permission
+                            isGranted: $voiceAgent.permissionManager.screenGranted,
                             onRequest: {
-                                // TODO: Request screen recording permission
+                                voiceAgent.permissionManager.requestScreenPermission { _ in }
                             }
                         )
-                        
+
                         PermissionRow(
                             title: "Accessibility",
                             description: "Required for system control",
-                            isGranted: .constant(false), // TODO: Check actual permission
+                            isGranted: $voiceAgent.permissionManager.accessibilityGranted,
                             onRequest: {
-                                // TODO: Open accessibility settings
-                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                                    NSWorkspace.shared.open(url)
-                                }
+                                voiceAgent.permissionManager.openAccessibilitySettings()
                             }
                         )
                     }
@@ -357,6 +389,9 @@ struct ConfigurationView: View {
         .onAppear {
             loadCurrentConfiguration()
             loadVoiceSettings()
+            voiceAgent.permissionManager.refreshStatuses()
+            systemPromptText = getSystemPrompt()
+            visionPromptText = getVisionSystemPrompt()
         }
     }
     
@@ -400,6 +435,9 @@ struct ConfigurationView: View {
             
             voiceAgent.aiProviderManager.selectProvider(provider)
             voiceAgent.aiProviderManager.selectModel(selectedModel)
+
+            updateSystemPrompt(systemPromptText)
+            updateVisionSystemPrompt(visionPromptText)
             
             alertMessage = "Configuration saved successfully!"
             showingAlert = true
@@ -474,6 +512,13 @@ struct ConfigurationView: View {
         if currentProvider.supportsVision && !currentProvider.visionModels.isEmpty {
             selectedVisionModelIndex = 0
         }
+
+        // Load speech language
+        if let index = languageOptions.firstIndex(where: { $0.code == voiceAgent.speechLanguage }) {
+            selectedLanguageIndex = index
+        }
+
+        wakeWord = voiceAgent.wakeWord
     }
 }
 
@@ -528,3 +573,4 @@ extension View {
     ConfigurationView()
         .environmentObject(VoiceAgent())
 }
+#endif

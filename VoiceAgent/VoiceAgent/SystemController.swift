@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import AppKit
 import ApplicationServices
@@ -259,3 +260,4 @@ enum SystemControllerError: Error, LocalizedError {
         }
     }
 }
+#endif

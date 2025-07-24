@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 
 protocol AIProvider {
@@ -74,13 +75,11 @@ class AIProviderManager: ObservableObject {
         saveConfiguration()
     }
     
-    func processCommandWithVision(_ command: String, image: NSImage?) async throws -> String {
+    func processCommandWithVision(_ command: String, screenContext: String, image: NSImage?) async throws -> String {
         guard let provider = currentProvider else {
             throw AIProviderError.notConfigured
         }
-        
-        let screenContext = "Recent screen analysis available"
-        
+
         if let image = image, provider.supportsVision && useVisionWhenAvailable {
             return try await provider.processCommandWithVision(command, screenContext: screenContext, image: image)
         } else {
@@ -850,7 +849,24 @@ class GroqProvider: AIProvider {
 }
 
 // MARK: - Helper Functions
-private let visionSystemPrompt = """
+fileprivate var systemPrompt: String = {
+    UserDefaults.standard.string(forKey: "systemPrompt") ?? """
+You are a macOS voice assistant capable of controlling the computer through voice commands.
+
+Available actions:
+- click(x, y) - Click at specific coordinates
+- type("text") - Type the given text
+- key("keyname") - Press a keyboard key (enter, space, tab, command, etc.)
+- scroll("direction") - Scroll in a direction (up, down, left, right)
+- open("appname") - Launch an application
+
+Respond with a short explanation of the action you will perform or the requested information.
+"""
+}()
+
+func getSystemPrompt() -> String { systemPrompt }
+fileprivate var visionSystemPrompt: String = {
+    UserDefaults.standard.string(forKey: "visionSystemPrompt") ?? """
 You are a macOS voice assistant with vision capabilities that can see and control the computer through voice commands.
 
 Your role is to interpret user voice commands while analyzing the current screen image to provide context-aware responses.
@@ -876,6 +892,9 @@ Examples:
 
 Be precise with coordinates based on what you can see in the image.
 """
+}()
+
+func getVisionSystemPrompt() -> String { visionSystemPrompt }
 
 private func buildVisionPrompt(command: String, screenContext: String) -> String {
     return """
@@ -886,6 +905,16 @@ private func buildVisionPrompt(command: String, screenContext: String) -> String
     
     Please analyze the provided screenshot image and the user command to provide the appropriate response or action. Use the visual information to give precise coordinates and detailed context.
     """
+}
+
+func updateSystemPrompt(_ prompt: String) {
+    systemPrompt = prompt
+    UserDefaults.standard.set(prompt, forKey: "systemPrompt")
+}
+
+func updateVisionSystemPrompt(_ prompt: String) {
+    visionSystemPrompt = prompt
+    UserDefaults.standard.set(prompt, forKey: "visionSystemPrompt")
 }
 
 // MARK: - Keychain Helpers
@@ -954,3 +983,4 @@ enum AIProviderError: Error, LocalizedError {
         }
     }
 }
+#endif

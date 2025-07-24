@@ -3,9 +3,6 @@ import PackageDescription
 
 let package = Package(
     name: "VoiceAgent",
-    platforms: [
-        .macOS(.v14)
-    ],
     products: [
         .executable(
             name: "VoiceAgent",
@@ -21,7 +18,12 @@ let package = Package(
         .executableTarget(
             name: "VoiceAgent",
             dependencies: [],
-            path: "VoiceAgent"
+            path: "VoiceAgent",
+            exclude: [
+                "VoiceAgent.entitlements",
+                "Assets.xcassets",
+                "Preview Content/Preview Assets.xcassets"
+            ]
         ),
         .testTarget(
             name: "VoiceAgentTests",

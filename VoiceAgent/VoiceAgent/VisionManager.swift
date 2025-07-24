@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 import AppKit
 import Vision
@@ -5,6 +6,8 @@ import CoreML
 
 @MainActor
 class VisionManager: ObservableObject {
+    private let aiProviderManager: AIProviderManager
+
     @Published var isVisionEnabled = true
     @Published var lastAnalysis: ScreenAnalysis?
     @Published var analysisHistory: [ScreenAnalysis] = []
@@ -77,13 +80,24 @@ class VisionManager: ObservableObject {
                             aiDescription = await self.getAIDescription(for: image) ?? "No AI description available"
                         }
                         
+                        let textScore = min(1.0, Float(detectedText.count) / 10.0)
+                        let elementScore: Float
+                        if uiElements.isEmpty {
+                            elementScore = 0.0
+                        } else {
+                            let total = uiElements.map { $0.confidence }.reduce(0, +)
+                            elementScore = total / Float(uiElements.count)
+                        }
+
+                        let confidence = min(1.0, (textScore + elementScore) / 2)
+
                         let analysis = ScreenAnalysis(
                             timestamp: Date(),
                             screenshot: image,
                             detectedText: detectedText,
                             uiElements: uiElements,
                             aiDescription: aiDescription,
-                            confidence: 0.8 // TODO: Calculate actual confidence
+                            confidence: confidence
                         )
                         
                         await MainActor.run {
@@ -188,24 +202,19 @@ class VisionManager: ObservableObject {
     }
     
     private func getAIDescription(for image: NSImage) async -> String? {
-        // This will be implemented by the AI providers
-        // For now, return a placeholder
         return await analyzeImageWithAI(image)
     }
-    
+
     private func analyzeImageWithAI(_ image: NSImage) async -> String? {
-        // Convert NSImage to base64 for AI analysis
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+        do {
+            return try await aiProviderManager.analyzeScreenImage(
+                image,
+                prompt: "Describe what you see in this screenshot in detail. Include UI elements, text content, and overall layout."
+            )
+        } catch {
+            print("AI analysis error: \(error)")
             return nil
         }
-        
-        let base64String = pngData.base64EncodedString()
-        
-        // This would be called by the AIProviderManager
-        // Return a placeholder for now
-        return "Screen contains various UI elements including windows, buttons, and text. Analysis requires AI provider integration."
     }
     
     func generateDetailedDescription() -> String {
@@ -323,7 +332,8 @@ class VisionManager: ObservableObject {
         lastAnalysis = nil
     }
     
-    init() {
+    init(aiProviderManager: AIProviderManager) {
+        self.aiProviderManager = aiProviderManager
         loadSettings()
     }
     
@@ -331,3 +341,4 @@ class VisionManager: ObservableObject {
         isVisionEnabled = UserDefaults.standard.object(forKey: "visionEnabled") as? Bool ?? true
     }
 }
+#endif
