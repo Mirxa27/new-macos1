@@ -259,6 +259,9 @@ This allows CI pipelines to verify the package compiles even without macOS.
    # The demo includes a default Gemini API key for convenience.
    ```
 
+
+If network access is blocked, the demo will fail to connect to Gemini.
+
 ### Architecture
 - **VoiceAgent**: Main coordinator class
 - **AudioManager**: Handles speech recognition
