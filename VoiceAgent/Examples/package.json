@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node --loader ts-node/esm GeminiLiveAPINodeDemo.ts"
+    "start": "node dist/GeminiLiveAPINodeDemo.js",
+    "prestart": "npm run build"
   },
   "dependencies": {
     "@google/genai": "^0.5.0",
