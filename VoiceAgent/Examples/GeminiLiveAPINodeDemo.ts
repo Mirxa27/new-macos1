@@ -13,6 +13,7 @@ import {
 import mime from 'mime';
 import { writeFile } from 'fs';
 
+const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDd9fZl4FDdRLTexx2KB7Ny8qWw7wuw6kc';
 const responseQueue: LiveServerMessage[] = [];
 
 async function handleTurn(): Promise<LiveServerMessage[]> {
@@ -142,7 +143,7 @@ function createWavHeader(dataLength: number, options: WavConversionOptions) {
 }
 
 async function main() {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const model = 'models/gemini-2.5-flash-preview-native-audio-dialog';
 
   const config = {

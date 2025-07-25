@@ -28,6 +28,7 @@ class GeminiProvider: AIProvider, ObservableObject {
     let supportsLiveAPI = true
     
     private var apiKey: String?
+    private let defaultAPIKey = "AIzaSyDd9fZl4FDdRLTexx2KB7Ny8qWw7wuw6kc"
     private var selectedModel = "gemini-2.5-flash-preview"
     private let baseURL = "https://generativelanguage.googleapis.com/v1beta/models"
     
@@ -358,7 +359,7 @@ class GeminiProvider: AIProvider, ObservableObject {
     }
     
     init() {
-        self.apiKey = loadAPIKey()
+        self.apiKey = loadAPIKey() ?? ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? defaultAPIKey
     }
 }
 #endif

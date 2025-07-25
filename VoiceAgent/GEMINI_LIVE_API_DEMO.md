@@ -226,5 +226,7 @@ cd Examples
 npm install
 npm run build
 npm start -- "Your message here"
+
+The demo includes a default Gemini API key so no additional setup is required.
 ```
 
