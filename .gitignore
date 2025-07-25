@@ -1,0 +1,4 @@
+/VoiceAgent/.build/
+/VoiceAgent/Examples/node_modules/
+/VoiceAgent/Examples/dist/
+/VoiceAgent/Examples/package-lock.json
