@@ -179,7 +179,8 @@ async function main() {
       config,
     });
   } catch (err) {
-    console.error('Failed to connect to Gemini Live API:', err);
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('Failed to connect to Gemini Live API:', detail);
     return;
   }
 
