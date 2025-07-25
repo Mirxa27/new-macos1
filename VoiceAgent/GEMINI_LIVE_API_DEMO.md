@@ -224,6 +224,7 @@ Run it with:
 ```bash
 cd Examples
 npm install
-npm run start
+npm run build
+npm start -- "Your message here"
 ```
 

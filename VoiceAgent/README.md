@@ -254,7 +254,8 @@ This allows CI pipelines to verify the package compiles even without macOS.
    ```bash
    cd Examples
    npm install
-   npm run start
+   npm run build
+   npm start -- "Your message here"
    ```
 
 ### Architecture

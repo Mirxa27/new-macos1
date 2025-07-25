@@ -176,10 +176,10 @@ async function main() {
     config,
   });
 
+  const input = process.argv.slice(2).join(' ') || 'Hello from Gemini Live API';
+
   session.sendClientContent({
-    turns: [
-      `INSERT_INPUT_HERE`,
-    ],
+    turns: [input],
   });
 
   await handleTurn();
