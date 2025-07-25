@@ -158,12 +158,14 @@ async function main() {
     },
   };
 
-  const session = await ai.live.connect({
-    model,
-    callbacks: {
-      onopen: function () {
-        console.debug('Opened');
-      },
+  let session: Session;
+  try {
+    session = await ai.live.connect({
+      model,
+      callbacks: {
+        onopen: function () {
+          console.debug('Opened');
+        },
       onmessage: function (message: LiveServerMessage) {
         responseQueue.push(message);
       },
@@ -174,8 +176,12 @@ async function main() {
         console.debug('Close:', e.reason);
       },
     },
-    config,
-  });
+      config,
+    });
+  } catch (err) {
+    console.error('Failed to connect to Gemini Live API:', err);
+    return;
+  }
 
   const input = process.argv.slice(2).join(' ') || 'Hello from Gemini Live API';
 
