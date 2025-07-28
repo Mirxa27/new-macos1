@@ -256,7 +256,7 @@ This allows CI pipelines to verify the package compiles even without macOS.
    npm install
    npm run build
    npm start -- "Your message here"
-   # The demo includes a default Gemini API key for convenience.
+   # A default Gemini API key is included. Set GEMINI_API_KEY to use your own.
    ```
 
 

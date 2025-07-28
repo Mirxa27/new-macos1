@@ -14,6 +14,9 @@ import mime from 'mime';
 import { writeFile } from 'fs';
 
 const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDd9fZl4FDdRLTexx2KB7Ny8qWw7wuw6kc';
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('Using built-in Gemini API key. Set GEMINI_API_KEY to override.');
+}
 const responseQueue: LiveServerMessage[] = [];
 
 async function handleTurn(): Promise<LiveServerMessage[]> {
