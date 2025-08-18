@@ -2,3 +2,5 @@
 /VoiceAgent/Examples/node_modules/
 /VoiceAgent/Examples/dist/
 /VoiceAgent/Examples/package-lock.json
+
+/VoiceAgent/package-lock.json
