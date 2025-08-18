@@ -2,7 +2,8 @@
 // To run this demo:
 //   cd Examples
 //   npm install
-//   npm run start
+//   npm run build
+//   npm start -- "Your message here"
 import {
   GoogleGenAI,
   LiveServerMessage,
