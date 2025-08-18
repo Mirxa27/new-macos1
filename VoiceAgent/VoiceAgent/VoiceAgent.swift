@@ -37,23 +37,22 @@ class VoiceAgent: ObservableObject {
     let voiceFeedbackManager = VoiceFeedbackManager()
     let visionManager: VisionManager
     let permissionManager = PermissionManager()
+    let wakeWordDetector = WakeWordDetector()
     
     private var commandProcessingTask: Task<Void, Never>?
+    private var isWaitingForCommand = false
     
     init() {
         visionManager = VisionManager(aiProviderManager: aiProviderManager)
         setupAudioManager()
         setupScreenManager()
         setupVisionManager()
+        setupWakeWordDetector()
         audioManager.updateLanguage(speechLanguage)
         permissionManager.refreshStatuses()
 
         if wakeWordEnabled {
-            Task {
-                try? await audioManager.startListening()
-                isListening = true
-                statusMessage = "Listening for wake word..."
-            }
+            startWakeWordDetection()
         }
     }
     
@@ -81,6 +80,30 @@ class VoiceAgent: ObservableObject {
     
     private func setupVisionManager() {
         // Vision manager will work automatically with screen captures
+    }
+    
+    private func setupWakeWordDetector() {
+        wakeWordDetector.wakeWord = wakeWord
+        wakeWordDetector.sensitivity = 0.7
+        wakeWordDetector.useContinuousListening = true
+        
+        wakeWordDetector.onWakeWordDetected = { [weak self] detectedPhrase, confidence in
+            Task { @MainActor in
+                self?.handleWakeWordDetected(detectedPhrase: detectedPhrase, confidence: confidence)
+            }
+        }
+        
+        wakeWordDetector.onTimeout = { [weak self] in
+            Task { @MainActor in
+                self?.handleWakeWordTimeout()
+            }
+        }
+        
+        wakeWordDetector.onError = { [weak self] error in
+            Task { @MainActor in
+                self?.statusMessage = "Wake word error: \(error.localizedDescription)"
+            }
+        }
     }
     
     func toggleListening() {
