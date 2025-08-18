@@ -250,15 +250,18 @@ VoiceAgent is only supported on macOS.
 ```
 
 This allows CI pipelines to verify the package compiles even without macOS.
-4. Optionally run the Node.js demo under `Examples` to test Gemini Live API from the command line. The demo includes a minimal stub of `@google/genai` so it works offline:
-   ```bash
-   cd Examples
-   npm install
-   npm run build
-   npm start -- "Your message here"
-   # A default Gemini API key is included. Set GEMINI_API_KEY to use your own.
-   ```
 
+### Gemini Live API Node Demo
+
+You can try the Gemini Live API from the command line using the included TypeScript example:
+
+```bash
+cd Examples
+npm install
+npm run build
+npm start -- "Your message here"
+# A default Gemini API key is included. Set GEMINI_API_KEY to use your own.
+```
 
 If network access is blocked, the demo will fail to connect to Gemini.
 
