@@ -1,0 +1,510 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User Management
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  username          String?   @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  avatar            String?
+  role              UserRole  @default(USER)
+  status            UserStatus @default(ACTIVE)
+  emailVerified     Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  failedLoginAttempts Int     @default(0)
+  lockedUntil       DateTime?
+  
+  // Relations
+  sessions          Session[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  apiKeys           ApiKey[]
+  voiceAgents       VoiceAgent[]
+  conversations     Conversation[]
+  webhooks          Webhook[]
+  settings          UserSetting[]
+  teams             TeamMember[]
+  ownedTeams        Team[]
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+  GUEST
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+// Session Management
+model Session {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String   @unique
+  ipAddress     String?
+  userAgent     String?
+  lastActivity  DateTime @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// Team Management
+model Team {
+  id            String        @id @default(cuid())
+  name          String
+  slug          String        @unique
+  description   String?
+  logo          String?
+  ownerId       String
+  owner         User          @relation(fields: [ownerId], references: [id])
+  
+  // Settings
+  maxMembers    Int           @default(10)
+  maxAgents     Int           @default(5)
+  maxApiCalls   Int           @default(10000)
+  billingPlan   BillingPlan   @default(FREE)
+  
+  // Relations
+  members       TeamMember[]
+  voiceAgents   VoiceAgent[]
+  apiKeys       ApiKey[]
+  webhooks      Webhook[]
+  invitations   TeamInvitation[]
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@index([slug])
+  @@index([ownerId])
+}
+
+enum BillingPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+model TeamMember {
+  id          String      @id @default(cuid())
+  teamId      String
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        TeamRole    @default(MEMBER)
+  permissions Json        @default("[]")
+  joinedAt    DateTime    @default(now())
+  
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model TeamInvitation {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email       String
+  role        TeamRole @default(MEMBER)
+  token       String   @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([teamId])
+  @@index([email])
+  @@index([token])
+}
+
+// Voice Agent System
+model VoiceAgent {
+  id                String            @id @default(cuid())
+  name              String
+  description       String?
+  avatar            String?
+  voice             String            @default("alloy")
+  language          String            @default("en-US")
+  personality       String?
+  systemPrompt      String?
+  temperature       Float             @default(0.7)
+  maxTokens         Int               @default(2000)
+  
+  // Provider Settings
+  provider          AIProvider        @default(OPENAI)
+  modelName         String            @default("gpt-4-turbo-preview")
+  apiEndpoint       String?
+  
+  // Features
+  capabilities      Json              @default("[]")
+  tools             Json              @default("[]")
+  knowledgeBase     Json              @default("[]")
+  
+  // Status
+  status            AgentStatus       @default(DRAFT)
+  isPublic          Boolean           @default(false)
+  
+  // Relations
+  userId            String?
+  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  teamId            String?
+  team              Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  conversations     Conversation[]
+  webhooks          Webhook[]
+  analytics         AgentAnalytics[]
+  
+  // Timestamps
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  publishedAt       DateTime?
+  
+  @@index([userId])
+  @@index([teamId])
+  @@index([status])
+}
+
+enum AIProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  AZURE
+  CUSTOM
+}
+
+enum AgentStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// Conversation Management
+model Conversation {
+  id              String          @id @default(cuid())
+  sessionId       String          @unique
+  userId          String?
+  user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  agentId         String
+  agent           VoiceAgent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  title           String?
+  summary         String?
+  sentiment       Float?
+  language        String          @default("en")
+  
+  // Status
+  status          ConversationStatus @default(ACTIVE)
+  
+  // Relations
+  messages        Message[]
+  transcriptions  Transcription[]
+  
+  // Timestamps
+  startedAt       DateTime        @default(now())
+  endedAt         DateTime?
+  lastActivityAt  DateTime        @default(now())
+  
+  @@index([sessionId])
+  @@index([userId])
+  @@index([agentId])
+  @@index([status])
+}
+
+enum ConversationStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+  ARCHIVED
+}
+
+model Message {
+  id              String        @id @default(cuid())
+  conversationId  String
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  role            MessageRole
+  content         String
+  audioUrl        String?
+  metadata        Json?
+  
+  // Analysis
+  tokens          Int?
+  processingTime  Int?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([conversationId])
+  @@index([role])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  FUNCTION
+}
+
+model Transcription {
+  id              String        @id @default(cuid())
+  conversationId  String
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  audioUrl        String
+  text            String
+  confidence      Float?
+  language        String?
+  duration        Int?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([conversationId])
+}
+
+// API Management
+model ApiKey {
+  id              String        @id @default(cuid())
+  name            String
+  key             String        @unique
+  hashedKey       String
+  lastUsedAt      DateTime?
+  expiresAt       DateTime?
+  
+  // Permissions
+  scopes          Json          @default("[]")
+  rateLimit       Int           @default(1000)
+  rateLimitWindow Int           @default(3600)
+  
+  // Relations
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  teamId          String?
+  team            Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  usageLogs       ApiUsageLog[]
+  
+  createdAt       DateTime      @default(now())
+  revokedAt       DateTime?
+  
+  @@index([key])
+  @@index([userId])
+  @@index([teamId])
+}
+
+model ApiUsageLog {
+  id              String        @id @default(cuid())
+  apiKeyId        String
+  apiKey          ApiKey        @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  
+  endpoint        String
+  method          String
+  statusCode      Int
+  responseTime    Int
+  ipAddress       String?
+  userAgent       String?
+  requestBody     Json?
+  responseBody    Json?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([apiKeyId])
+  @@index([endpoint])
+  @@index([createdAt])
+}
+
+// Webhook Management
+model Webhook {
+  id              String        @id @default(cuid())
+  name            String
+  url             String
+  secret          String?
+  events          Json          @default("[]")
+  headers         Json?
+  
+  // Status
+  enabled         Boolean       @default(true)
+  retryCount      Int           @default(3)
+  timeoutSeconds  Int           @default(30)
+  
+  // Relations
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  teamId          String?
+  team            Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  agentId         String?
+  agent           VoiceAgent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  deliveries      WebhookDelivery[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([teamId])
+  @@index([agentId])
+}
+
+model WebhookDelivery {
+  id              String        @id @default(cuid())
+  webhookId       String
+  webhook         Webhook       @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  
+  event           String
+  payload         Json
+  response        Json?
+  statusCode      Int?
+  attempts        Int           @default(1)
+  success         Boolean       @default(false)
+  error           String?
+  
+  createdAt       DateTime      @default(now())
+  deliveredAt     DateTime?
+  
+  @@index([webhookId])
+  @@index([event])
+  @@index([success])
+}
+
+// Configuration Management
+model SystemConfig {
+  id              String        @id @default(cuid())
+  key             String        @unique
+  value           Json
+  category        String
+  description     String?
+  isSecret        Boolean       @default(false)
+  isEditable      Boolean       @default(true)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([key])
+  @@index([category])
+}
+
+model UserSetting {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  key             String
+  value           Json
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+// Notification System
+model Notification {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            NotificationType
+  title           String
+  message         String
+  data            Json?
+  
+  read            Boolean       @default(false)
+  readAt          DateTime?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([userId])
+  @@index([type])
+  @@index([read])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  SYSTEM
+  SECURITY
+}
+
+// Analytics
+model AgentAnalytics {
+  id              String        @id @default(cuid())
+  agentId         String
+  agent           VoiceAgent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  date            DateTime      @default(now())
+  conversations   Int           @default(0)
+  messages        Int           @default(0)
+  tokens          Int           @default(0)
+  avgResponseTime Float?
+  avgSentiment    Float?
+  errors          Int           @default(0)
+  
+  @@unique([agentId, date])
+  @@index([agentId])
+  @@index([date])
+}
+
+// Audit Logging
+model AuditLog {
+  id              String        @id @default(cuid())
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  action          String
+  entity          String
+  entityId        String?
+  oldValue        Json?
+  newValue        Json?
+  metadata        Json?
+  ipAddress       String?
+  userAgent       String?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([userId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+}

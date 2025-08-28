@@ -1,0 +1,306 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Mobile-first responsive typography */
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium;
+  }
+
+  h5 {
+    @apply text-base sm:text-lg md:text-xl lg:text-2xl font-medium;
+  }
+
+  h6 {
+    @apply text-sm sm:text-base md:text-lg lg:text-xl font-medium;
+  }
+
+  p {
+    @apply text-sm sm:text-base leading-relaxed;
+  }
+
+  /* Ensure proper touch targets for mobile */
+  button, 
+  a, 
+  input, 
+  select, 
+  textarea {
+    @apply min-h-[44px] sm:min-h-[40px];
+  }
+
+  /* Smooth scrolling for better mobile experience */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent horizontal scroll on mobile */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Better focus states for accessibility */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+
+  /* Disable tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  /* Responsive container */
+  .container-responsive {
+    @apply w-full px-4 sm:px-6 lg:px-8 mx-auto;
+    @apply max-w-screen-sm sm:max-w-screen-md md:max-w-screen-lg lg:max-w-screen-xl xl:max-w-screen-2xl;
+  }
+
+  /* Mobile-optimized card */
+  .card-mobile {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  /* Responsive grid */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
+
+  /* Mobile navigation */
+  .nav-mobile {
+    @apply fixed bottom-0 left-0 right-0 bg-background border-t;
+    @apply sm:relative sm:bottom-auto sm:border-t-0 sm:border-b;
+    @apply z-50 sm:z-auto;
+  }
+
+  /* Responsive button sizes */
+  .btn-responsive {
+    @apply px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base;
+    @apply min-h-[44px] sm:min-h-[40px];
+  }
+
+  /* Mobile-first modal */
+  .modal-mobile {
+    @apply fixed inset-x-4 bottom-4 sm:inset-auto sm:top-1/2 sm:left-1/2;
+    @apply sm:-translate-x-1/2 sm:-translate-y-1/2;
+    @apply w-[calc(100%-2rem)] sm:w-full sm:max-w-lg;
+    @apply max-h-[80vh] overflow-y-auto;
+  }
+
+  /* Touch-friendly form elements */
+  .input-mobile {
+    @apply w-full px-3 py-2 text-base;
+    @apply min-h-[44px] sm:min-h-[40px];
+    @apply rounded-md border border-input;
+    @apply focus:outline-none focus:ring-2 focus:ring-ring;
+  }
+
+  /* Responsive table */
+  .table-mobile {
+    @apply block sm:table overflow-x-auto;
+    @apply w-full min-w-full;
+  }
+
+  .table-mobile thead {
+    @apply hidden sm:table-header-group;
+  }
+
+  .table-mobile tbody {
+    @apply block sm:table-row-group;
+  }
+
+  .table-mobile tr {
+    @apply block sm:table-row border-b sm:border-0;
+    @apply mb-2 sm:mb-0;
+  }
+
+  .table-mobile td {
+    @apply block sm:table-cell text-right sm:text-left;
+    @apply px-4 py-2;
+  }
+
+  .table-mobile td::before {
+    @apply content-attr(data-label) float-left font-medium;
+    @apply sm:hidden;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Responsive spacing utilities */
+  .space-y-responsive {
+    @apply space-y-4 sm:space-y-6 md:space-y-8;
+  }
+
+  .space-x-responsive {
+    @apply space-x-2 sm:space-x-4 md:space-x-6;
+  }
+
+  /* Safe area for mobile devices */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156 163 175) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(156 163 175);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(107 114 128);
+  }
+
+  /* Text truncation */
+  .truncate-lines {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .truncate-2 {
+    -webkit-line-clamp: 2;
+  }
+
+  .truncate-3 {
+    -webkit-line-clamp: 3;
+  }
+
+  /* Responsive text alignment */
+  .text-responsive {
+    @apply text-center sm:text-left;
+  }
+
+  /* Mobile-optimized animations */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    color: black;
+    background: white;
+  }
+
+  a {
+    color: black;
+    text-decoration: underline;
+  }
+}
