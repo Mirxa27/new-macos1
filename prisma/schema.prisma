@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
+  fullName         String    @map("full_name")
+  role             UserRole  @default(USER)
+  isActive         Boolean   @default(true) @map("is_active")
+  emailVerified    Boolean   @default(false) @map("email_verified")
+  profileImageUrl  String?   @map("profile_image_url")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  lastLoginAt      DateTime? @map("last_login_at")
+
+  // Relations
+  voiceSessions     VoiceSession[]
+  voiceCommands     VoiceCommand[]
+  screenCaptures    ScreenCapture[]
+  userPreferences   UserPreference[]
+  automationScripts AutomationScript[]
+  notifications     Notification[]
+  apiUsageLogs      ApiUsageLog[]
+  performanceMetrics PerformanceMetric[]
+  createdProviders  AiProvider[]
+  createdConfigs    SystemConfiguration[]
+
+  @@map("users")
+}
+
+model AiProvider {
+  id                  String  @id @default(uuid())
+  name                String  @unique
+  providerType        ProviderType @map("provider_type")
+  apiKeyEncrypted     String? @map("api_key_encrypted")
+  baseUrl             String? @map("base_url")
+  isEnabled           Boolean @default(true) @map("is_enabled")
+  defaultModel        String? @map("default_model")
+  maxTokens           Int     @default(4000) @map("max_tokens")
+  temperature         Float   @default(0.7)
+  timeoutSeconds      Int     @default(30) @map("timeout_seconds")
+  rateLimitPerMinute  Int     @default(60) @map("rate_limit_per_minute")
+  supportsVision      Boolean @default(false) @map("supports_vision")
+  supportsAudio       Boolean @default(false) @map("supports_audio")
+  configuration       Json    @default("{}")
+  createdBy           String? @map("created_by")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creator       User?         @relation(fields: [createdBy], references: [id])
+  models        AiModel[]
+  voiceSessions VoiceSession[]
+  apiUsageLogs  ApiUsageLog[]
+
+  @@map("ai_providers")
+}
+
+model AiModel {
+  id                     String    @id @default(uuid())
+  providerId             String    @map("provider_id")
+  modelName              String    @map("model_name")
+  displayName            String    @map("display_name")
+  modelType              ModelType @map("model_type")
+  maxTokens              Int       @default(4000) @map("max_tokens")
+  costPer1kInputTokens   Float?    @map("cost_per_1k_input_tokens")
+  costPer1kOutputTokens  Float?    @map("cost_per_1k_output_tokens")
+  isEnabled              Boolean   @default(true) @map("is_enabled")
+  capabilities           Json      @default("{}")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  provider      AiProvider     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  voiceSessions VoiceSession[]
+  apiUsageLogs  ApiUsageLog[]
+
+  @@unique([providerId, modelName])
+  @@map("ai_models")
+}
+
+model VoiceSession {
+  id                      String        @id @default(uuid())
+  userId                  String        @map("user_id")
+  sessionName             String?       @map("session_name")
+  aiProviderId            String?       @map("ai_provider_id")
+  aiModelId               String?       @map("ai_model_id")
+  wakeWord                String?       @map("wake_word")
+  languageCode            String        @default("en-US") @map("language_code")
+  voiceFeedbackEnabled    Boolean       @default(true) @map("voice_feedback_enabled")
+  continuousListening     Boolean       @default(false) @map("continuous_listening")
+  screenMonitoringEnabled Boolean       @default(true) @map("screen_monitoring_enabled")
+  sessionStatus           SessionStatus @default(ACTIVE) @map("session_status")
+  startedAt               DateTime      @default(now()) @map("started_at")
+  endedAt                 DateTime?     @map("ended_at")
+  totalDurationSeconds    Int           @default(0) @map("total_duration_seconds")
+  totalTokensUsed         Int           @default(0) @map("total_tokens_used")
+  totalCost               Float         @default(0) @map("total_cost")
+  metadata                Json          @default("{}")
+
+  // Relations
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiProvider     AiProvider?       @relation(fields: [aiProviderId], references: [id])
+  aiModel        AiModel?          @relation(fields: [aiModelId], references: [id])
+  voiceCommands  VoiceCommand[]
+  screenCaptures ScreenCapture[]
+  performanceMetrics PerformanceMetric[]
+
+  @@map("voice_sessions")
+}
+
+model VoiceCommand {
+  id                String           @id @default(uuid())
+  sessionId         String           @map("session_id")
+  userId            String           @map("user_id")
+  commandText       String           @map("command_text")
+  processedCommand  String?          @map("processed_command")
+  aiResponse        String?          @map("ai_response")
+  commandType       CommandType      @default(GENERAL) @map("command_type")
+  executionStatus   ExecutionStatus  @default(PENDING) @map("execution_status")
+  confidenceScore   Float?           @map("confidence_score")
+  processingTimeMs  Int?             @map("processing_time_ms")
+  tokensUsed        Int              @default(0) @map("tokens_used")
+  cost              Float            @default(0)
+  errorMessage      String?          @map("error_message")
+  screenCaptureUrl  String?          @map("screen_capture_url")
+  audioFileUrl      String?          @map("audio_file_url")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  completedAt       DateTime?        @map("completed_at")
+
+  // Relations
+  session       VoiceSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  systemActions SystemAction[]
+
+  @@map("voice_commands")
+}
+
+model SystemAction {
+  id               String     @id @default(uuid())
+  commandId        String     @map("command_id")
+  actionType       ActionType @map("action_type")
+  targetElement    String?    @map("target_element")
+  coordinates      Json?
+  inputText        String?    @map("input_text")
+  keyCombination   String?    @map("key_combination")
+  applicationName  String?    @map("application_name")
+  success          Boolean    @default(false)
+  executionTimeMs  Int?       @map("execution_time_ms")
+  errorDetails     String?    @map("error_details")
+  createdAt        DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  command VoiceCommand @relation(fields: [commandId], references: [id], onDelete: Cascade)
+
+  @@map("system_actions")
+}
+
+model ScreenCapture {
+  id               String        @id @default(uuid())
+  sessionId        String?       @map("session_id")
+  commandId        String?       @map("command_id")
+  userId           String        @map("user_id")
+  imageUrl         String        @map("image_url")
+  imageWidth       Int?          @map("image_width")
+  imageHeight      Int?          @map("image_height")
+  fileSizeBytes    Int?          @map("file_size_bytes")
+  analysisText     String?       @map("analysis_text")
+  detectedElements Json          @default("[]") @map("detected_elements")
+  confidenceScores Json          @default("{}") @map("confidence_scores")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  session VoiceSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  command VoiceCommand? @relation(fields: [commandId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("screen_captures")
+}
+
+model SystemConfiguration {
+  id          String    @id @default(uuid())
+  configKey   String    @unique @map("config_key")
+  configValue String    @map("config_value")
+  dataType    DataType  @map("data_type")
+  description String?
+  isPublic    Boolean   @default(false) @map("is_public")
+  category    String    @default("general")
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  creator User? @relation(fields: [createdBy], references: [id])
+
+  @@map("system_configurations")
+}
+
+model UserPreference {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  preferenceKey   String   @map("preference_key")
+  preferenceValue String   @map("preference_value")
+  dataType        DataType @map("data_type")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, preferenceKey])
+  @@map("user_preferences")
+}
+
+model AutomationScript {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  name             String
+  description      String?
+  triggerPhrase    String?   @map("trigger_phrase")
+  scriptContent    Json      @map("script_content")
+  isEnabled        Boolean   @default(true) @map("is_enabled")
+  executionCount   Int       @default(0) @map("execution_count")
+  lastExecutedAt   DateTime? @map("last_executed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("automation_scripts")
+}
+
+model PerformanceMetric {
+  id                String        @id @default(uuid())
+  sessionId         String?       @map("session_id")
+  userId            String?       @map("user_id")
+  metricName        String        @map("metric_name")
+  metricValue       Float         @map("metric_value")
+  metricUnit        String?       @map("metric_unit")
+  timestampRecorded DateTime      @default(now()) @map("timestamp_recorded")
+  metadata          Json          @default("{}")
+
+  // Relations
+  session VoiceSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("performance_metrics")
+}
+
+model ApiUsageLog {
+  id             String     @id @default(uuid())
+  userId         String?    @map("user_id")
+  providerId     String?    @map("provider_id")
+  modelId        String?    @map("model_id")
+  endpoint       String
+  requestTokens  Int        @default(0) @map("request_tokens")
+  responseTokens Int        @default(0) @map("response_tokens")
+  totalCost      Float      @default(0) @map("total_cost")
+  responseTimeMs Int?       @map("response_time_ms")
+  statusCode     Int?       @map("status_code")
+  errorMessage   String?    @map("error_message")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  user     User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AiProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  model    AiModel?    @relation(fields: [modelId], references: [id], onDelete: SetNull)
+
+  @@map("api_usage_logs")
+}
+
+model Notification {
+  id               String           @id @default(uuid())
+  userId           String           @map("user_id")
+  title            String
+  message          String
+  notificationType NotificationType @default(INFO) @map("notification_type")
+  isRead           Boolean          @default(false) @map("is_read")
+  actionUrl        String?          @map("action_url")
+  expiresAt        DateTime?        @map("expires_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Enums
+enum UserRole {
+  SUPER_ADMIN @map("super_admin")
+  ADMIN       @map("admin")
+  USER        @map("user")
+}
+
+enum ProviderType {
+  OPENAI    @map("openai")
+  ANTHROPIC @map("anthropic")
+  GOOGLE    @map("google")
+  GROQ      @map("groq")
+  OLLAMA    @map("ollama")
+}
+
+enum ModelType {
+  TEXT       @map("text")
+  VISION     @map("vision")
+  AUDIO      @map("audio")
+  MULTIMODAL @map("multimodal")
+}
+
+enum SessionStatus {
+  ACTIVE    @map("active")
+  PAUSED    @map("paused")
+  COMPLETED @map("completed")
+  ERROR     @map("error")
+}
+
+enum CommandType {
+  GENERAL        @map("general")
+  SYSTEM_CONTROL @map("system_control")
+  SCREEN_ANALYSIS @map("screen_analysis")
+  AUTOMATION     @map("automation")
+}
+
+enum ExecutionStatus {
+  PENDING    @map("pending")
+  PROCESSING @map("processing")
+  COMPLETED  @map("completed")
+  FAILED     @map("failed")
+  CANCELLED  @map("cancelled")
+}
+
+enum ActionType {
+  CLICK          @map("click")
+  TYPE           @map("type")
+  KEY_PRESS      @map("key_press")
+  SCROLL         @map("scroll")
+  APP_LAUNCH     @map("app_launch")
+  WINDOW_CONTROL @map("window_control")
+  SYSTEM_COMMAND @map("system_command")
+}
+
+enum DataType {
+  STRING  @map("string")
+  NUMBER  @map("number")
+  BOOLEAN @map("boolean")
+  JSON    @map("json")
+}
+
+enum NotificationType {
+  INFO    @map("info")
+  WARNING @map("warning")
+  ERROR   @map("error")
+  SUCCESS @map("success")
+}
